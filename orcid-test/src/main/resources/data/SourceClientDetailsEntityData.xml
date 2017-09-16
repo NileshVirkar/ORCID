@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+
+    =============================================================================
+
+    ORCID (R) Open Source
+    http://orcid.org
+
+    Copyright (c) 2012-2014 ORCID, Inc.
+    Licensed under an MIT-Style License (MIT)
+    http://orcid.org/open-source-license
+
+    This copyright and license information (including a link to the full license)
+    shall be included in its entirety in all copies or substantial portion of
+    the software.
+
+    =============================================================================
+
+-->
+<dataset>
+     <profile
+            orcid="5555-5555-5555-5558"
+            creation_method="API"
+            completed_date="2011-07-02 15:31:00.00"
+            date_created="2011-06-29 15:31:00.00"
+            submission_date="2011-06-29 15:31:00.00"
+            last_indexed_date="2011-07-02 15:31:00.00"            
+            last_modified="2011-07-02 15:31:00.00"           
+            claimed="true"
+            profile_address_visibility="PRIVATE"
+            external_identifiers_visibility="LIMITED"
+            biography_visibility="PUBLIC"
+            keywords_visibility="REGISTERED_ONLY"
+            other_names_visibility="PRIVATE"
+            researcher_urls_visibility="PUBLIC"
+            is_selectable_sponsor="false"
+            encrypted_password="e9adO9I4UpBwqI5tGR+qDodvAZ7mlcISn+T+kyqXPf2Z6PPevg7JijqYr6KGO8VOskOYqVOEK2FEDwebxWKGDrV/TQ9gRfKWZlzxssxsOnA="
+            security_question_id="1"
+            encrypted_security_answer="iTlIoR2JsFl5guE56cazmg=="
+            encrypted_verification_code="1vLkD2Lm8c24TyALcW0Brg=="
+            send_change_notifications="false"
+            send_orcid_news="false"
+            activities_visibility_default='PRIVATE'
+            credentials_expiry="2013-02-01"
+            indexing_status="DONE"
+            iso2_country="GB"
+            orcid_type="GROUP"
+            group_type="PREMIUM_INSTITUTION"
+            />
+            
+	<record_name 
+		id="100"
+		date_created="2016-04-27 00:00:00.00"
+		last_modified="2016-04-27 00:00:00.00"
+		orcid="5555-5555-5555-5558"
+		credit_name="Source Client Group 1"
+		visibility="PUBLIC"            
+		/>  
+		
+	<biography
+		id="100"
+		date_created="2016-04-27 00:00:00.00"
+		last_modified="2016-04-27 00:00:00.00"
+		orcid="5555-5555-5555-5558"		 
+		biography="This is just a group of clients."
+		visibility="PUBLIC"
+		/>          
+            
+	<email
+        orcid="5555-5555-5555-5558"
+        email="5555-5555-5555-5558@user.com"
+        is_primary="true"
+        is_current="true"
+        is_verified="true"
+        visibility="PRIVATE"
+        source_id="5555-5555-5555-5558"
+    />
+                                                
+    <client_details client_details_id="APP-5555555555555555" date_created="2012-04-25" last_modified="2012-04-25" client_type="PREMIUM_CREATOR" client_name="Source Client 1" client_description="A test source client" client_website="www.5555555555555555.com" group_orcid="5555-5555-5555-5558" persistent_tokens_enabled="true" allow_auto_deprecate="true" />
+    <client_details client_details_id="APP-5555555555555556" date_created="2012-04-25" last_modified="2012-04-25" client_type="PREMIUM_CREATOR" client_name="Source Client 2" client_description="A test source client" client_website="www.5555555555555556.com" group_orcid="5555-5555-5555-5558" persistent_tokens_enabled="true" allow_auto_deprecate="false" />
+    
+    <client_authorised_grant_type client_details_id="APP-5555555555555555" grant_type="authorization_code" />
+	<client_authorised_grant_type client_details_id="APP-5555555555555555" grant_type="client_credentials" />
+	<client_authorised_grant_type client_details_id="APP-5555555555555555" grant_type="refresh_token" />
+	<client_authorised_grant_type client_details_id="APP-5555555555555556" grant_type="authorization_code" />
+	<client_authorised_grant_type client_details_id="APP-5555555555555556" grant_type="client_credentials" />
+	<client_authorised_grant_type client_details_id="APP-5555555555555556" grant_type="refresh_token" />
+	
+	
+	<client_granted_authority client_details_id="APP-5555555555555555" granted_authority="ROLE_CLIENT"/>
+	<client_granted_authority client_details_id="APP-5555555555555556" granted_authority="ROLE_CLIENT"/>
+	
+	<client_resource_id client_details_id="APP-5555555555555555" resource_id="orcid"/>
+	<client_resource_id client_details_id="APP-5555555555555556" resource_id="orcid"/>
+	
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/webhook"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/read-public"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/orcid-profile/create"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/orcid-bio/read-limited"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/orcid-bio/update"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/orcid-works/update"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/orcid-works/create"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/funding/create"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/funding/update"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/affiliations/create"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/authenticate"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/funding/read-limited"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/affiliations/read-limited"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/premium-notification"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/activities/update"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/activities/read-limited"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/read-limited"/>    
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/peer-review/create"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/orcid-internal/person/read"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/person/read-limited"/>
+    <client_scope client_details_id="APP-5555555555555555" scope_type="/person/update"/>        
+    
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/orcid-bio/read-limited"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/orcid-works/create"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/funding/create"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/funding/read-limited"/>     
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/affiliations/create"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/affiliations/read-limited"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/authenticate"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/webhook"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/read-public"/>
+    <client_scope client_details_id="APP-5555555555555556" scope_type="/orcid-profile/create"/>
+    
+    <client_secret client_details_id="APP-5555555555555555" client_secret="DhkFj5EI0qp6GsUKi55Vja+h+bsaKpBx" date_created="2012-04-25" last_modified="2012-04-25"/>
+    <client_secret client_details_id="APP-5555555555555556" client_secret="DhkFj5EI0qp6GsUKi55Vja+h+bsaKpBx" date_created="2012-04-25" last_modified="2012-04-25"/>
+    
+    <client_redirect_uri client_details_id="APP-5555555555555555" redirect_uri="http://www.APP-5555555555555555.com/redirect/oauth" redirect_uri_type="default"/>
+    <client_redirect_uri client_details_id="APP-5555555555555555" redirect_uri="http://www.APP-5555555555555555.com/redirect/oauth/institutional_sign_in" predefined_client_redirect_scope="/authenticate" redirect_uri_type="institutional-sign-in"/>
+</dataset>

@@ -1,0 +1,55 @@
+<!--
+
+    =============================================================================
+
+    ORCID (R) Open Source
+    http://orcid.org
+
+    Copyright (c) 2012-2014 ORCID, Inc.
+    Licensed under an MIT-Style License (MIT)
+    http://orcid.org/open-source-license
+
+    This copyright and license information (including a link to the full license)
+    shall be included in its entirety in all copies or substantial portion of
+    the software.
+
+    =============================================================================
+
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+        
+    <changeSet id="ADD-LAST-INDEXED-DATE-TO-PROFILE" author="Will Simpson">
+        <addColumn tableName="profile">
+            <column name="last_indexed_date" type="TIMESTAMP WITH TIME ZONE"/>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet id="CREATE-PROFILE-EVENT-TABLE" author="Will Simpson">
+        <createTable tableName="profile_event">
+             <column name="id" type="bigint">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="profile_event_pkey"/>
+            </column>
+            <column name="date_created" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="last_modified" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="orcid" type="VARCHAR(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="profile_event_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="profile_event_orcid"
+                                 baseTableName="profile_event" baseColumnNames="orcid" 
+                                 referencedTableName="profile" referencedColumnNames="orcid"/>
+    </changeSet>
+    
+    <changeSet id="CREATE-PROFILE-EVENT-SEQUENCE" author="Will Simpson" dbms="postgresql">
+        <createSequence sequenceName="profile_event_seq"/>    
+    </changeSet>
+    
+    <changeSet id="CREATE-PROFILE-EVENT-AUTO-INCREMENT" author="Will Simpson" dbms="hsqldb">
+         <addAutoIncrement tableName="profile_event" columnName="id" columnDataType="bigint"/>
+    </changeSet>
+
+</databaseChangeLog>

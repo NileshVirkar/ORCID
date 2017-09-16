@@ -1,0 +1,345 @@
+/**
+ * =============================================================================
+ *
+ * ORCID (R) Open Source
+ * http://orcid.org
+ *
+ * Copyright (c) 2012-2014 ORCID, Inc.
+ * Licensed under an MIT-Style License (MIT)
+ * http://orcid.org/open-source-license
+ *
+ * This copyright and license information (including a link to the full license)
+ * shall be included in its entirety in all copies or substantial portion of
+ * the software.
+ *
+ * =============================================================================
+ */
+
+@media all {
+    /*Begin of boilerplate default styles for printing */
+    *,
+    *:before,
+    *:after,
+    blockquote:first-letter,
+    blockquote:first-line,
+    div:first-letter,
+    div:first-line,
+    li:first-line,
+    li:first-letter,
+    p:first-letter,
+    p:first-line {
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #000 !important; /* Black prints faster:                           http://www.sanbeiji.com/archives/953 */
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: none;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    .url-work a[href]:after {
+        content: none;
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    /*
+     * Don't show links that are fragment identifiers,
+     * or use the `javascript:` pseudo protocol
+     */
+
+    a[href^="#"]:after,
+    a[href^="javascript:"]:after {
+        content: "";
+    }
+
+    pre {
+        white-space: pre-wrap !important;
+    }
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    /*
+     * Printing Tables:
+     * http://css-discuss.incutio.com/wiki/Printing_Tables
+     */
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    .workspace-section-title,
+    .workspace-title {
+        page-break-after: avoid;
+    }
+
+    /*End of boilerplate default styles for printing */
+    *,
+    .full-name,
+    .orcid-id,
+    .workspace-left,
+    h3.workspace-title {
+        font-family: Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+    }
+    
+    a.toggle-text[href]:after {
+        content: none;
+    }
+
+    body {
+        font-size: 12px;
+    }
+
+    i.glyphicon-chevron-down,
+    .action-button-bar,
+    .alert,
+    .bio-edit,
+    .biography-edit,
+    .container .header,
+    .country-edit,
+    .divisor,
+    .footer,
+    .footer-main,
+    .glyphicon-pencil,
+    .gray-button,
+    .id-banner .row .col-md-3,
+    .id-banner-header,
+    .keywords-edit,
+    .mini-orcid-icon,
+    .more-info,
+    .names-edit,
+    .orcid-id-options,
+    .other-names-edit,
+    .popover-help-container,
+    .print-orcid-record,
+    .qrcode-container,
+    .source-line div,
+    .websites-edit,
+    .workspace-private-toolbar,
+    .workspace-profile span.glyphicon-pencil,
+    .workspace-toolbar {
+        display: none;
+    }
+
+    ul.sources-edit-list > li,
+    .id-banner .oid,
+    .workspace-accordion-content > li,
+    .workspace-body-list > li,
+    .workspace-border-box {
+        border: 0;
+    }
+
+    #orcid-id {
+        font-size: 14px;
+    }
+
+    #orcid-id:before {
+        content: url('https://orcid.org/sites/default/files/files/ID_symbol_B-W_16x16.png');
+        display: block;
+        float: left;
+        height: 16px;
+        margin-right: 4px;
+        padding: 2px;
+        width: 16px;
+    }
+    
+    .bio-content {
+    	margin-bottom: 10px;
+    }
+    
+    .bottom-margin-medium,
+    .bottomBuffer {
+        margin: 0;
+    }
+
+    .col-md-3,
+    .col-md-9,
+    .col-md-10,
+    .col-md-12,
+    .col-sm-3,
+    .col-sm-9,
+    .col-sm-10, 
+    .col-sm-12,
+    .col-xs-7,
+    .col-xs-8,
+    .col-xs-12,
+    .workspace-accordion,
+    .workspace-accordion-content li,
+    .workspace-accordion-content ul.sources-edit-list li {
+        padding-left: 0;
+    }
+
+    .col-md-3,
+    .col-sm-3,
+    .col-xs-12,
+    .left-aside {
+        width: 100%;
+    }
+
+    .container {
+        overflow-x: hidden;
+    }
+
+    .full-name {
+        font-size: 32px;
+    }
+    
+    .id-banner .oid .orcid-id-container,
+    .workspace-accordion-header {
+        background-color: #fff;
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .info-detail span {
+    	width: 100%;
+    }
+    
+    .main {
+        margin: 20px 0 0 0;
+    }
+
+    .mobile-box {
+        padding: 0;
+    }
+    
+    .orcid-id-info {
+	    border-bottom: 1px solid #000;
+	    margin: 5px 0;
+	}
+
+    .print .info-detail, 
+    .workspace-accordion-content,
+    .workspace-accordion-content .workspace-title {
+        font-size: 14px;
+        line-height: 22px;
+    }
+
+    .info-detail span.role:after{
+        content: none;
+    }
+
+    .info-detail span.ng-scope{
+        //display: none;
+    }
+
+    .row .row {
+        margin-left: 0;
+    }
+
+    .truncate-anchor {
+        width: 100%;
+        white-space: normal;
+        overflow: visible;
+        display: inline;
+        word-break: break-all;
+        //vertical-align: bottom;
+    }
+
+    .work-title a.toggle-text,
+    .workspace-accordion-header .row,
+    #workspace-personal .row:first-child {
+        border-bottom: 1px solid #000;
+        color: #000;
+        font-size: 14px;
+        font-weight: bold;
+        height: inherit;
+        line-height: normal;
+        margin-bottom: 16px;
+        width: 100%;
+    }
+
+    .workspace-accordion-content .workspace-title .journaltitle {
+        font-style: italic;
+        font-weight: normal;
+    }
+    
+    .workspace-accordion-content .workspace-title span {
+        font-weight: bold;
+    }
+    
+    .workspace-peer-review .title::before {
+        content: "• ";
+	}
+
+    .workspace-peer-review .peer-review-title :first-child:after {
+        content: " ";
+    }
+    
+    #workspace-peer-review .peer-review-title {
+    	font-size: 14px;
+    	font-weight: bold;
+        cursor: text;
+    }
+    
+    .workspace-peer-review .title .glyphicon {
+    	display: none;
+    } 
+    
+    .workspace-profile,
+    #workspace-education,
+    #workspace-employment,
+    #workspace-funding,
+    #workspace-works,
+    #workspace-peer-review {
+    	page-break-inside: avoid;
+    }
+    .workspace-profile .workspace-section {
+        display: block;
+        float: left;
+        margin: 4px;
+        margin-left: 0;
+        padding: 0;
+    }
+    
+    .workspace-profile .workspace-section .workspace-section-header .workspace-section-title, 
+    .workspace-title {
+        float: left;
+        font-weight: bold;
+        margin-right: 4px;
+    }
+    
+    .workspace-section .workspace-section-heading li.right span.toggle {
+        display: none;
+    }
+    
+    .workspace-top{
+    	border: none;
+    }
+
+    .source-line div:first-child{
+        display: inherit;
+    }
+}

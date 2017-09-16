@@ -1,0 +1,207 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+
+    =============================================================================
+
+    ORCID (R) Open Source
+    http://orcid.org
+
+    Copyright (c) 2012-2014 ORCID, Inc.
+    Licensed under an MIT-Style License (MIT)
+    http://orcid.org/open-source-license
+
+    This copyright and license information (including a link to the full license)
+    shall be included in its entirety in all copies or substantial portion of
+    the software.
+
+    =============================================================================
+
+-->
+<dataset>
+	<record_name 
+		id="0"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4441"
+		given_names="One"
+		family_name="User"
+		credit_name="Credit Name"
+		visibility="PUBLIC"	
+		/>
+
+	<record_name 
+		id="1"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4442"
+		credit_name="Credit Name"
+		given_names="Given Names"
+		family_name="Family Name"
+		visibility="PUBLIC"		
+		/>
+	
+	<record_name 
+		id="2"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4443"
+		given_names="Peter"
+		family_name="Sellers"
+		credit_name="P. Sellers III"            
+		visibility="LIMITED"			
+		/>
+		
+	<record_name 
+		id="3"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4444"
+		given_names="Harry"
+		family_name="Secombe"
+		credit_name="H. Secombe"
+		visibility="PUBLIC"		
+		/>		
+		
+	<record_name 
+		id="4"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4445"
+		given_names="Andrew"
+		family_name="Timothy"
+		credit_name="A. Timothy"		
+		visibility="PUBLIC"		
+		/>		
+		
+	<record_name 
+		id="5"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4446"
+		given_names="Billie"
+		family_name="Holiday"
+		credit_name="B. Holiday"		
+		visibility="PUBLIC"		
+		/>
+		
+	<record_name 
+		id="6"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4447"
+		credit_name="Credit Name"
+		given_names="Given Names"
+		family_name="Family Name"
+		visibility="LIMITED"			
+		/>								
+		
+	<record_name 
+		id="7"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-444X"
+		given_names="Given"
+		family_name="Familye"
+		credit_name="U. Name"
+		visibility="PUBLIC"			
+		/>		
+		
+	<record_name 
+		id="8"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4440"
+		given_names="Admin"
+		family_name="Admin Family"
+		credit_name="Adm. Credit"
+		visibility="PUBLIC"            		
+		/>		
+		
+	<record_name 
+		id="9"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4499"
+		given_names="Michael"
+		family_name="Bentine"
+		credit_name="Multi Cred Name"
+		visibility="PUBLIC"                        	
+		/>		
+		
+	<record_name 
+		id="10"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4498"
+		given_names="Michael"
+		family_name="Bentine"
+		credit_name="Multi Cred Name"
+		visibility="PUBLIC"		
+		/>
+		
+	<record_name 
+		id="11"
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="4444-4444-4444-4497"
+		given_names="Tom"
+		family_name="McTomson"
+		credit_name="Multi Cred Name"
+		visibility="PUBLIC"            	
+		/>					
+		
+	<record_name
+		id="12" 
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="0000-0000-0000-0001"
+		given_names="Leonardo"
+		family_name="da Vinci"
+		credit_name="Leonardo"            
+		visibility="PRIVATE"	
+		/>	
+			
+	<record_name
+		id="13" 
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="0000-0000-0000-0002"
+		credit_name="Credit Name"
+		given_names="Given Names"
+		family_name="Family Name"
+		visibility="LIMITED"	
+		/>
+		
+	<record_name
+		id="14" 
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="0000-0000-0000-0003"
+		credit_name="Credit Name"
+		given_names="Given Names"
+		family_name="Family Name"
+		visibility="PUBLIC"	
+		/>
+		
+	<record_name
+		id="15" 
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="0000-0000-0000-0004"
+		credit_name=""
+		given_names="Given Names Deactivated"
+		family_name="Family Name Deactivated"
+		visibility="PRIVATE"	
+		/>
+	
+	<record_name
+		id="16" 
+		date_created="2016-04-01 00:00:00.00"
+		last_modified="2016-04-01 00:00:00.00"
+		orcid="0000-0000-0000-0007"
+		credit_name=""
+		given_names="Given Names Deactivated"
+		family_name="Family Name Deactivated"
+		visibility="PRIVATE"	
+		/>								
+</dataset>

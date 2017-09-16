@@ -1,0 +1,1549 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    =============================================================================
+
+    ORCID (R) Open Source
+    http://orcid.org
+
+    Copyright (c) 2012-2014 ORCID, Inc.
+    Licensed under an MIT-Style License (MIT)
+    http://orcid.org/open-source-license
+
+    This copyright and license information (including a link to the full license)
+    shall be included in its entirety in all copies or substantial portion of
+    the software.
+
+    =============================================================================
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:cache="http://www.springframework.org/schema/cache" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd 
+        http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-4.3.xsd">
+        
+
+	<import resource="classpath*:orcid-persistence-context.xml" />
+	<!-- Commenting out whilst the auditing is still being discussed -->
+	<!-- <import resource="classpath*:orcid-audit-context.xml" /> -->
+
+	<context:component-scan
+		base-package="org.orcid.core.manager.impl, org.orcid.core.oauth.service, org.orcid.core.security, org.orcid.core.messaging, org.orcid.core.togglz" />
+	<aop:aspectj-autoproxy />
+	
+    <context:mbean-server />
+
+	<bean id="orcidOAuth2RequestValidator" class="org.orcid.core.oauth.service.OrcidOAuth2RequestValidator">
+		<constructor-arg ref="profileEntityCacheManager" />
+	</bean>
+
+	<bean id="templateManager" class="org.orcid.core.manager.impl.TemplateManagerImpl" />
+
+	<bean id="notificationManager" class="org.orcid.core.manager.impl.NotificationManagerImpl">
+		<property name="encryptionManager" ref="encryptionManager" />
+		<property name="templateManager" ref="templateManager" />
+		<property name="apiRecordCreationEmailEnabled"
+			value="${org.orcid.core.mail.apiRecordCreationEmailEnabled:true}" />
+	</bean>
+	
+	<bean id="emailMessageSender" class="org.orcid.core.manager.impl.EmailMessageSenderImpl" />
+	
+	<!-- Effectively a wrapper around the client details service, converting client to user details -->
+    <bean id="clientDetailsUserService" class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+        <constructor-arg ref="clientDetailsManager"/>
+    </bean>
+
+    <bean id="orcidTokenStore" class="org.orcid.core.oauth.service.OrcidTokenStoreServiceImpl" />
+
+    <!-- Use the provided token random token services to actually create the values, and plugin our tokenStore etc -->
+    <bean id="tokenServices" class="org.orcid.core.oauth.service.OrcidRandomValueTokenServicesImpl">               
+        <property name="orcidtokenStore" ref="orcidTokenStore" />        
+        <property name="customTokenEnhancer" ref="orcidTokenEnhancer" />
+        <property name="supportRefreshToken" value="${org.orcid.core.oauth.supportRefreshToken:true}" />
+        <property name="customSupportRefreshToken" value="${org.orcid.core.oauth.supportRefreshToken:true}" />
+    </bean>
+	
+	<bean id="openIDConnectKeyServiceConfig" class="org.orcid.core.oauth.openid.OpenIDConnectKeyService.OpenIDConnectKeyServiceConfig">
+		<property name="jwksLocation" value="${org.orcid.openid.jwksLocation}"/>
+		<property name="keyName" value="${org.orcid.openid.jwksKeyName}"/>
+		<property name="jsonKey" value="${org.orcid.openid.jwksTestKey}"/>
+	</bean>
+	
+	<bean id="openIDConnectDiscoveryServiceConfig" class="org.orcid.core.oauth.openid.OpenIDConnectDiscoveryService.OpenIDConnectDiscoveryServiceConfig"/>
+	<bean id="openIDConnectDiscoveryService" class="org.orcid.core.oauth.openid.OpenIDConnectDiscoveryService"/>
+	<bean id="openIDConnectKeyService" class="org.orcid.core.oauth.openid.OpenIDConnectKeyService"/>
+	<bean id="openIDConnectTokenEnhancer" class="org.orcid.core.oauth.openid.OpenIDConnectTokenEnhancer"/>
+	<bean id="orcidTokenEnhancer" class="org.springframework.security.oauth2.provider.token.TokenEnhancerChain">
+		<property name="tokenEnhancers">
+		<list>
+			<bean class="org.orcid.core.oauth.OrcidTokenEnhancer" />
+			<ref bean="openIDConnectTokenEnhancer" />
+		</list>
+		</property>
+	</bean>
+	
+	
+	<bean id="authenticationKeyGenerator" class="org.springframework.security.oauth2.provider.token.DefaultAuthenticationKeyGenerator" />	
+	
+	<!-- 
+	<bean id="serviceAnnouncement_1_For_2015" class="org.orcid.core.profileEvent.ServiceAnnouncement_1_For_2015" scope="prototype" />	
+	 -->
+	<bean id="verifiedRequiredAnnouncement2017" class="org.orcid.core.profileEvent.VerifiedRequiredAnnouncement2017" scope="prototype" />	
+	 
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="localhost" />
+	</bean>
+
+	<bean id="encryptionManager" class="org.orcid.core.manager.impl.EncryptionManagerImpl">
+		<property name="passPhraseForInternalEncryption"
+			value="${org.orcid.core.passPhraseForInternalEncryption:xxxx}" />
+		<property name="iterationCountForInternalEncryption"
+			value="${org.orcid.core.iterationCountForInternalEncryption:1111}" />
+		<property name="internalEncryptor" ref="internalEncryptor" />
+		<property name="externalEncryptor" ref="externalEncryptor" />
+		<property name="legacyExternalEncryptor" ref="legacyExternalEncryptor" />
+		<property name="passwordEncryptor">
+			<bean class="org.jasypt.digest.PooledStringDigester">
+				<property name="config">
+					<bean class="org.jasypt.digest.config.SimpleDigesterConfig">
+						<property name="algorithm"
+							value="${org.orcid.core.passwordEncryptionAlgorithm:SHA-512}" />
+						<property name="iterations"
+							value="${org.orcid.core.passwordEncryptionIterations:250000}" />
+						<property name="saltSizeBytes"
+							value="${org.orcid.core.passwordEncryptionSaltSize:16}" />
+						<property name="poolSize" 
+							value="${org.orcid.core.passwordEncryptionPoolSize:16}" />
+						<property name="provider">
+							<bean class="org.bouncycastle.jce.provider.BouncyCastleProvider" />
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- Record Managers -->
+	<bean id="profileEntityManager" class="org.orcid.core.manager.impl.ProfileEntityManagerImpl">
+		<property name="profileDao" ref="profileDao" />		
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />		
+	</bean>
+	
+	<bean id="profileEntityManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ProfileEntityManagerReadOnlyImpl">
+		<property name="profileDao" ref="profileDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />		
+	</bean>
+
+	<bean id="recordManager" class="org.orcid.core.manager.impl.RecordManagerImpl">
+		<property name="profileEntityCacheManager" ref="profileEntityCacheManager" />
+		<property name="emailManager" ref="emailManager" />
+		<property name="activitiesSummaryManager" ref="activitiesSummaryManager" />
+		<property name="personDetailsManager" ref="personDetailsManager" />		
+	</bean> 
+
+	<bean id="recordManagerReadOnly" class="org.orcid.core.manager.read_only.impl.RecordManagerReadOnlyImpl">
+		<property name="profileEntityCacheManager" ref="profileEntityCacheManagerReadOnly" />
+		<property name="emailManager" ref="emailManagerReadOnly" />
+		<property name="activitiesSummaryManager" ref="activitiesSummaryManagerReadOnly" />
+		<property name="personDetailsManager" ref="personDetailsManagerReadOnly" />		
+	</bean>
+	
+	<!-- Person Managers -->
+	<bean id="recordNameManager" class="org.orcid.core.manager.impl.RecordNameManagerImpl">
+		<property name="recordNameDao" ref="recordNameDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="recordNameManagerReadOnly" class="org.orcid.core.manager.read_only.impl.RecordNameManagerReadOnlyImpl">
+		<property name="recordNameDao" ref="recordNameDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+
+	<bean id="biographyManager" class="org.orcid.core.manager.impl.BiographyManagerImpl">
+		<property name="biographyDao" ref="biographyDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="biographyManagerReadOnly" class="org.orcid.core.manager.read_only.impl.BiographyManagerReadOnlyImpl">
+		<property name="biographyDao" ref="biographyDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="addressManager" class="org.orcid.core.manager.impl.AddressManagerImpl">
+		<property name="addressDao" ref="addressDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="addressManagerReadOnly" class="org.orcid.core.manager.read_only.impl.AddressManagerReadOnlyImpl">
+		<property name="addressDao" ref="addressDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>
+
+	<bean id="otherNameManager" class="org.orcid.core.manager.impl.OtherNameManagerImpl">
+		<property name="otherNameDao" ref="otherNameDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="otherNameManagerReadOnly" class="org.orcid.core.manager.read_only.impl.OtherNameManagerReadOnlyImpl">
+		<property name="otherNameDao" ref="otherNameDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>
+	
+	<bean id="profileKeywordManager" class="org.orcid.core.manager.impl.ProfileKeywordManagerImpl">
+		<property name="profileKeywordDao" ref="profileKeywordDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="profileKeywordManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ProfileKeywordManagerReadOnlyImpl">
+		<property name="profileKeywordDao" ref="profileKeywordDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>	
+	
+	<bean id="externalIdentifierManager" class="org.orcid.core.manager.impl.ExternalIdentifierManagerImpl">
+		<property name="externalIdentifierDao" ref="externalIdentifierDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>	
+	
+	<bean id="externalIdentifierManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ExternalIdentifierManagerReadOnlyImpl">
+		<property name="externalIdentifierDao" ref="externalIdentifierDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>	
+
+	<bean id="personalDetailsManager" class="org.orcid.core.manager.impl.PersonalDetailsManagerImpl">
+		<property name="otherNameManager" ref="otherNameManager" />
+		<property name="recordNameManager" ref="recordNameManager" />
+		<property name="biographyManager" ref="biographyManager" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+
+	<bean id="personalDetailsManagerReadOnly" class="org.orcid.core.manager.read_only.impl.PersonalDetailsManagerReadOnlyImpl">
+		<property name="otherNameManager" ref="otherNameManagerReadOnly" />
+		<property name="recordNameManager" ref="recordNameManagerReadOnly" />
+		<property name="biographyManager" ref="biographyManagerReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>
+
+	<bean id="emailManager" class="org.orcid.core.manager.impl.EmailManagerImpl">
+		<property name="emailDao" ref="emailDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="emailManagerReadOnly" class="org.orcid.core.manager.read_only.impl.EmailManagerReadOnlyImpl">
+		<property name="emailDao" ref="emailDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>	
+	
+	<bean id="researcherUrlManager" class="org.orcid.core.manager.impl.ResearcherUrlManagerImpl">
+		<property name="researcherUrlDao" ref="researcherUrlDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="researcherUrlManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ResearcherUrlManagerReadOnlyImpl">
+		<property name="researcherUrlDao" ref="researcherUrlDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>
+	
+	<bean id="personDetailsManager" class="org.orcid.core.manager.impl.PersonDetailsManagerImpl">
+		<property name="addressManager" ref="addressManager"/>
+		<property name="externalIdentifierManager" ref="externalIdentifierManager"/>
+		<property name="profileKeywordManager" ref="profileKeywordManager"/>
+		<property name="otherNameManager" ref="otherNameManager"/>
+		<property name="researcherUrlManager" ref="researcherUrlManager"/>
+		<property name="emailManager" ref="emailManager"/>
+		<property name="recordNameManager" ref="recordNameManager"/>
+		<property name="biographyManager" ref="biographyManager"/>
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="personDetailsManagerReadOnly" class="org.orcid.core.manager.read_only.impl.PersonDetailsManagerReadOnlyImpl">
+		<property name="addressManager" ref="addressManagerReadOnly"/>
+		<property name="externalIdentifierManager" ref="externalIdentifierManagerReadOnly"/>
+		<property name="profileKeywordManager" ref="profileKeywordManagerReadOnly"/>
+		<property name="otherNameManager" ref="otherNameManagerReadOnly"/>
+		<property name="researcherUrlManager" ref="researcherUrlManagerReadOnly"/>
+		<property name="emailManager" ref="emailManagerReadOnly"/>
+		<property name="recordNameManager" ref="recordNameManagerReadOnly"/>
+		<property name="biographyManager" ref="biographyManagerReadOnly"/>
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>
+	
+	<!-- Activities Managers -->
+	<bean id="workManager" class="org.orcid.core.manager.impl.WorkManagerImpl">
+		<property name="workDao" ref="workDao" />
+		<property name="workEntityCacheManager" ref="workEntityCacheManager" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="workManagerReadOnly" class="org.orcid.core.manager.read_only.impl.WorkManagerReadOnlyImpl">
+		<property name="workDao" ref="workDaoReadOnly" />
+		<property name="workEntityCacheManager" ref="workEntityCacheManagerReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>
+		
+	<bean id="profileFundingManager" class="org.orcid.core.manager.impl.ProfileFundingManagerImpl">
+		<property name="profileFundingDao" ref="profileFundingDao" />		
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="profileFundingManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ProfileFundingManagerReadOnlyImpl">
+		<property name="profileFundingDao" ref="profileFundingDaoReadOnly" />	
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />	
+	</bean>
+		
+	<bean id="affiliationsManager" class="org.orcid.core.manager.impl.AffiliationsManagerImpl">
+		<property name="orgAffiliationRelationDao" ref="orgAffiliationRelationDao" />
+		<property name="sourceNameCacheManager" ref="sourceNameCacheManager" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="affiliationsManagerReadOnly" class="org.orcid.core.manager.read_only.impl.AffiliationsManagerReadOnlyImpl">
+		<property name="orgAffiliationRelationDao" ref="orgAffiliationRelationDaoReadOnly" />
+		<property name="sourceNameCacheManager" ref="sourceNameCacheManagerReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="peerReviewManager" class="org.orcid.core.manager.impl.PeerReviewManagerImpl">
+		<property name="peerReviewDao" ref="peerReviewDao" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="peerReviewManagerReadOnly" class="org.orcid.core.manager.read_only.impl.PeerReviewManagerReadOnlyImpl">
+		<property name="peerReviewDao" ref="peerReviewDaoReadOnly" />
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="activitiesSummaryManager" class="org.orcid.core.manager.impl.ActivitiesSummaryManagerImpl">
+		<property name="affiliationsManager" ref="affiliationsManager" />
+		<property name="fundingManager" ref="profileFundingManager" />
+		<property name="peerReviewManager" ref="peerReviewManager" />
+		<property name="workManager" ref="workManager" />		
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+	</bean>
+	
+	<bean id="activitiesSummaryManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ActivitiesSummaryManagerReadOnlyImpl">
+		<property name="affiliationsManager" ref="affiliationsManagerReadOnly" />
+		<property name="fundingManager" ref="profileFundingManagerReadOnly" />
+		<property name="peerReviewManager" ref="peerReviewManagerReadOnly" />
+		<property name="workManager" ref="workManagerReadOnly" />		
+		<property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+	</bean>
+	
+	<!-- Client Managers -->
+	<bean id="clientManager" class="org.orcid.core.manager.impl.ClientManagerImpl" />
+	
+	<bean id="clientManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ClientManagerReadOnlyImpl">
+		<property name="clientDetailsDao" ref="clientDetailsDaoReadOnly" />
+	</bean>
+	
+	<!-- Other Read Only Managers -->
+	<bean id="workEntityCacheManager" class="org.orcid.core.manager.impl.WorkEntityCacheManagerImpl">
+		<property name="workDao" ref="workDao" />
+	</bean>
+	
+	<bean id="workEntityCacheManagerReadOnly" class="org.orcid.core.manager.impl.WorkEntityCacheManagerImpl">
+		<property name="workDao" ref="workDaoReadOnly" />
+	</bean>	
+	
+	<bean id="profileEntityCacheManager" class="org.orcid.core.manager.impl.ProfileEntityCacheManagerImpl">
+		<property name="profileEntityManager" ref="profileEntityManager" />
+	</bean>
+	
+	<bean id="profileEntityCacheManagerReadOnly" class="org.orcid.core.manager.impl.ProfileEntityCacheManagerImpl">
+		<property name="profileEntityManager" ref="profileEntityManagerReadOnly" />
+	</bean>
+	
+	<bean id="groupIdRecordManager" class="org.orcid.core.manager.impl.GroupIdRecordManagerImpl">
+		<property name="groupIdRecordDao" ref="groupIdRecordDao" />
+	</bean>
+	
+	<bean id="groupIdRecordManagerReadOnly" class="org.orcid.core.manager.read_only.impl.GroupIdRecordManagerReadOnlyImpl">
+		<property name="groupIdRecordDao" ref="groupIdRecordDaoReadOnly" />
+	</bean>
+	
+	<bean id="clientDetailsManager" class="org.orcid.core.manager.impl.ClientDetailsManagerImpl">
+		<property name="clientDetailsDao" ref="clientDetailsDao" />
+		<property name="clientSecretDao" ref="clientSecretDao" />
+		<property name="clientRedirectDao" ref="clientRedirectDao" />
+	</bean>
+	
+	<bean id="clientDetailsManagerReadOnly" class="org.orcid.core.manager.read_only.impl.ClientDetailsManagerReadOnlyImpl">
+		<property name="clientDetailsDao" ref="clientDetailsDaoReadOnly" />
+		<property name="clientSecretDao" ref="clientSecretDaoReadOnly" />
+		<property name="clientRedirectDao" ref="clientRedirectDaoReadOnly" />
+	</bean>
+	
+	<bean id="sourceNameCacheManager" class="org.orcid.core.manager.impl.SourceNameCacheManagerImpl">
+		<property name="recordNameDao" ref="recordNameDao" />
+		<property name="clientDetailsDao" ref="clientDetailsDao" />
+		<property name="profileEntityManager" ref="profileEntityManager" />
+	</bean>
+	
+	<bean id="sourceNameCacheManagerReadOnly" class="org.orcid.core.manager.impl.SourceNameCacheManagerImpl">
+		<property name="recordNameDao" ref="recordNameDaoReadOnly" />
+		<property name="clientDetailsDao" ref="clientDetailsDaoReadOnly" />
+		<property name="profileEntityManager" ref="profileEntityManager" />
+	</bean>
+	
+	<bean id="recordCorrectionsManagerReadOnly" class="org.orcid.core.manager.read_only.impl.RecordCorrectionsManagerReadOnlyImpl" />
+	
+	<!-- Utilities -->
+	<bean id="contributorUtils" class="org.orcid.core.utils.ContributorUtils">
+		<property name="profileEntityCacheManager" ref="profileEntityCacheManager" />
+		<property name="cacheManager" ref="ActivityCacheManager" />
+		<property name="profileEntityManager" ref="profileEntityManager" />
+	</bean>
+	
+	<bean id="contributorUtilsReadOnly" class="org.orcid.core.utils.ContributorUtils">
+		<property name="profileEntityCacheManager" ref="profileEntityCacheManager" />
+		<property name="cacheManager" ref="ActivityCacheManager" />
+		<property name="profileEntityManager" ref="profileEntityManager" />
+	</bean>
+	
+	<bean id="sourceUtils" class="org.orcid.core.utils.SourceUtils">
+		<property name="sourceNameCacheManager" ref="sourceNameCacheManager" />
+	</bean>
+	
+	<bean id="sourceUtilsReadOnly" class="org.orcid.core.utils.SourceUtils">
+		<property name="sourceNameCacheManager" ref="sourceNameCacheManagerReadOnly" />
+	</bean>
+	
+	<bean id="contributorUtilsV3" class="org.orcid.core.utils.v3.ContributorUtils">
+        <property name="profileEntityCacheManager" ref="profileEntityCacheManager" />
+        <property name="cacheManager" ref="activityCacheManagerV3" />
+        <property name="profileEntityManager" ref="profileEntityManagerV3" />
+    </bean>
+    
+    <bean id="contributorUtilsReadOnlyV3" class="org.orcid.core.utils.v3.ContributorUtils">
+        <property name="profileEntityCacheManager" ref="profileEntityCacheManager" />
+        <property name="cacheManager" ref="activityCacheManagerV3" />
+        <property name="profileEntityManager" ref="profileEntityManagerV3" />
+    </bean>
+	
+	   <bean id="sourceUtilsV3" class="org.orcid.core.utils.v3.SourceUtils">
+        <property name="sourceNameCacheManager" ref="sourceNameCacheManager" />
+    </bean>
+    
+    <bean id="sourceUtilsReadOnlyV3" class="org.orcid.core.utils.v3.SourceUtils">
+        <property name="sourceNameCacheManager" ref="sourceNameCacheManagerReadOnly" />
+    </bean>
+	
+	<!-- v3 managers -->
+	<bean id="activitiesSummaryManagerV3" class="org.orcid.core.manager.v3.impl.ActivitiesSummaryManagerImpl">
+        <property name="affiliationsManager" ref="affiliationsManagerV3" />
+        <property name="fundingManager" ref="profileFundingManagerV3" />
+        <property name="peerReviewManager" ref="peerReviewManagerV3" />
+        <property name="workManager" ref="workManagerV3" />       
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="activitiesSummaryManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ActivitiesSummaryManagerReadOnlyImpl">
+        <property name="affiliationsManager" ref="affiliationsManagerReadOnlyV3" />
+        <property name="fundingManager" ref="profileFundingManagerReadOnlyV3" />
+        <property name="peerReviewManager" ref="peerReviewManagerReadOnlyV3" />
+        <property name="workManager" ref="workManagerReadOnlyV3" />       
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean>
+	
+    <bean id="activityCacheManagerV3" class="org.orcid.core.manager.v3.impl.ActivityCacheManagerImpl" />
+    
+    <bean id="addressManagerV3" class="org.orcid.core.manager.v3.impl.AddressManagerImpl">
+        <property name="addressDao" ref="addressDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="addressManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.AddressManagerReadOnlyImpl">
+        <property name="addressDao" ref="addressDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean>
+    
+    <bean id="affiliationsManagerV3" class="org.orcid.core.manager.v3.impl.AffiliationsManagerImpl">
+        <property name="orgAffiliationRelationDao" ref="orgAffiliationRelationDao" />
+        <property name="sourceNameCacheManager" ref="sourceNameCacheManager" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="affiliationsManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.AffiliationsManagerReadOnlyImpl">
+        <property name="orgAffiliationRelationDao" ref="orgAffiliationRelationDaoReadOnly" />
+        <property name="sourceNameCacheManager" ref="sourceNameCacheManagerReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="bibtexManagerV3" class="org.orcid.core.manager.v3.impl.BibtexManagerImpl" />
+    
+    <bean id="biographyManagerV3" class="org.orcid.core.manager.v3.impl.BiographyManagerImpl">
+        <property name="biographyDao" ref="biographyDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="biographyManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.BiographyManagerReadOnlyImpl">
+        <property name="biographyDao" ref="biographyDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+
+    <bean id="emailManagerV3" class="org.orcid.core.manager.v3.impl.EmailManagerImpl">
+        <property name="emailDao" ref="emailDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="emailManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.EmailManagerReadOnlyImpl">
+        <property name="emailDao" ref="emailDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean> 
+    
+    <bean id="externalIdentifierManagerV3" class="org.orcid.core.manager.v3.impl.ExternalIdentifierManagerImpl">
+        <property name="externalIdentifierDao" ref="externalIdentifierDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean> 
+    
+    <bean id="externalIdentifierManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ExternalIdentifierManagerReadOnlyImpl">
+        <property name="externalIdentifierDao" ref="externalIdentifierDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean> 
+
+    <bean id="groupIdRecordManagerV3" class="org.orcid.core.manager.v3.impl.GroupIdRecordManagerImpl">
+        <property name="groupIdRecordDao" ref="groupIdRecordDao" />
+    </bean>
+    
+    <bean id="groupIdRecordManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.GroupIdRecordManagerReadOnlyImpl">
+        <property name="groupIdRecordDao" ref="groupIdRecordDaoReadOnly" />
+    </bean>
+    
+    <bean id="notificationManagerV3" class="org.orcid.core.manager.v3.impl.NotificationManagerImpl">
+        <property name="encryptionManager" ref="encryptionManager" />
+        <property name="templateManager" ref="templateManager" />
+        <property name="apiRecordCreationEmailEnabled"
+            value="${org.orcid.core.mail.apiRecordCreationEmailEnabled:true}" />
+    </bean>
+    
+    <bean id="orcidSearchManagerV3" class="org.orcid.core.manager.v3.impl.OrcidSearchManagerImpl" >
+        <property name="orcidProfileCacheManager" ref="orcidProfileCacheManager" />
+    </bean>
+    
+    <bean id="orcidSearchManagerReadOnlyV3" class="org.orcid.core.manager.v3.impl.OrcidSearchManagerImpl" >
+        <property name="orcidProfileCacheManager" ref="orcidProfileCacheManagerReadOnly" />
+    </bean>
+    
+    <bean id="orcidSecurityManagerV3" class="org.orcid.core.manager.v3.impl.OrcidSecurityManagerImpl" />     
+    
+    <bean id="orgManagerV3" class="org.orcid.core.manager.v3.impl.OrgManagerImpl" />
+    
+    <bean id="otherNameManagerV3" class="org.orcid.core.manager.v3.impl.OtherNameManagerImpl">
+        <property name="otherNameDao" ref="otherNameDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="otherNameManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.OtherNameManagerReadOnlyImpl">
+        <property name="otherNameDao" ref="otherNameDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean>
+    
+    <bean id="peerReviewManagerV3" class="org.orcid.core.manager.v3.impl.PeerReviewManagerImpl">
+        <property name="peerReviewDao" ref="peerReviewDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="peerReviewManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.PeerReviewManagerReadOnlyImpl">
+        <property name="peerReviewDao" ref="peerReviewDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="personalDetailsManagerV3" class="org.orcid.core.manager.v3.impl.PersonalDetailsManagerImpl">
+        <property name="otherNameManager" ref="otherNameManagerV3" />
+        <property name="recordNameManager" ref="recordNameManagerV3" />
+        <property name="biographyManager" ref="biographyManagerV3" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+
+    <bean id="personalDetailsManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.PersonalDetailsManagerReadOnlyImpl">
+        <property name="otherNameManager" ref="otherNameManagerReadOnlyV3" />
+        <property name="recordNameManager" ref="recordNameManagerReadOnlyV3" />
+        <property name="biographyManager" ref="biographyManagerReadOnlyV3" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean>
+    
+    <bean id="personDetailsManagerV3" class="org.orcid.core.manager.v3.impl.PersonDetailsManagerImpl">
+        <property name="addressManager" ref="addressManagerV3"/>
+        <property name="externalIdentifierManager" ref="externalIdentifierManagerV3"/>
+        <property name="profileKeywordManager" ref="profileKeywordManagerV3"/>
+        <property name="otherNameManager" ref="otherNameManagerV3"/>
+        <property name="researcherUrlManager" ref="researcherUrlManagerV3"/>
+        <property name="emailManager" ref="emailManagerV3"/>
+        <property name="recordNameManager" ref="recordNameManagerV3"/>
+        <property name="biographyManager" ref="biographyManagerV3"/>
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="personDetailsManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.PersonDetailsManagerReadOnlyImpl">
+        <property name="addressManager" ref="addressManagerReadOnlyV3"/>
+        <property name="externalIdentifierManager" ref="externalIdentifierManagerReadOnlyV3"/>
+        <property name="profileKeywordManager" ref="profileKeywordManagerReadOnlyV3"/>
+        <property name="otherNameManager" ref="otherNameManagerReadOnlyV3"/>
+        <property name="researcherUrlManager" ref="researcherUrlManagerReadOnlyV3"/>
+        <property name="emailManager" ref="emailManagerReadOnlyV3"/>
+        <property name="recordNameManager" ref="recordNameManagerReadOnlyV3"/>
+        <property name="biographyManager" ref="biographyManagerReadOnlyV3"/>
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean>
+    
+    <bean id="profileEntityManagerV3" class="org.orcid.core.manager.v3.impl.ProfileEntityManagerImpl">
+        <property name="profileDao" ref="profileDao" />     
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />       
+    </bean>
+    
+    <bean id="profileEntityManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ProfileEntityManagerReadOnlyImpl">
+        <property name="profileDao" ref="profileDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />       
+    </bean>
+    
+    <bean id="profileFundingManagerV3" class="org.orcid.core.manager.v3.impl.ProfileFundingManagerImpl">
+        <property name="profileFundingDao" ref="profileFundingDao" />    
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />   
+    </bean>
+    
+    <bean id="profileFundingManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ProfileFundingManagerReadOnlyImpl">
+        <property name="profileFundingDao" ref="profileFundingDaoReadOnly" />    
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />   
+    </bean>
+    
+    <bean id="profileKeywordManagerV3" class="org.orcid.core.manager.v3.impl.ProfileKeywordManagerImpl">
+        <property name="profileKeywordDao" ref="profileKeywordDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="profileKeywordManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ProfileKeywordManagerReadOnlyImpl">
+        <property name="profileKeywordDao" ref="profileKeywordDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean> 
+        
+    <bean id="recordManagerV3" class="org.orcid.core.manager.v3.impl.RecordManagerImpl">
+        <property name="profileEntityCacheManager" ref="profileEntityCacheManager" />
+        <property name="emailManager" ref="emailManagerV3" />
+        <property name="activitiesSummaryManager" ref="activitiesSummaryManagerV3" />
+        <property name="personDetailsManager" ref="personDetailsManagerV3" />     
+    </bean> 
+
+    <bean id="recordManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.RecordManagerReadOnlyImpl">
+        <property name="profileEntityCacheManager" ref="profileEntityCacheManagerReadOnly" />
+        <property name="emailManager" ref="emailManagerReadOnlyV3" />
+        <property name="activitiesSummaryManager" ref="activitiesSummaryManagerReadOnlyV3" />
+        <property name="personDetailsManager" ref="personDetailsManagerReadOnlyV3" />     
+    </bean>
+    
+    <bean id="recordNameManagerV3" class="org.orcid.core.manager.v3.impl.RecordNameManagerImpl">
+        <property name="recordNameDao" ref="recordNameDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="recordNameManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.RecordNameManagerReadOnlyImpl">
+        <property name="recordNameDao" ref="recordNameDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="researcherUrlManagerV3" class="org.orcid.core.manager.v3.impl.ResearcherUrlManagerImpl">
+        <property name="researcherUrlDao" ref="researcherUrlDao" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="researcherUrlManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ResearcherUrlManagerReadOnlyImpl">
+        <property name="researcherUrlDao" ref="researcherUrlDaoReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean>
+    
+    <bean id="workManagerV3" class="org.orcid.core.manager.v3.impl.WorkManagerImpl">
+        <property name="workDao" ref="workDao" />
+        <property name="workEntityCacheManager" ref="workEntityCacheManager" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+    
+    <bean id="workManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.WorkManagerReadOnlyImpl">
+        <property name="workDao" ref="workDaoReadOnly" />
+        <property name="workEntityCacheManager" ref="workEntityCacheManagerReadOnly" />
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspectReadOnly" />
+    </bean>
+
+    <bean id="clientDetailsManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ClientDetailsManagerReadOnlyImpl">
+        <property name="clientDetailsDao" ref="clientDetailsDaoReadOnly" />
+        <property name="clientSecretDao" ref="clientSecretDaoReadOnly" />
+        <property name="clientRedirectDao" ref="clientRedirectDaoReadOnly" />
+    </bean>
+    
+    <bean id="clientManagerReadOnlyV3" class="org.orcid.core.manager.v3.read_only.impl.ClientManagerReadOnlyImpl">
+        <property name="clientDetailsDao" ref="clientDetailsDaoReadOnly" />
+    </bean>
+    
+
+	<!-- Other Managers -->
+	<bean id="registrationManager" class="org.orcid.core.manager.impl.RegistrationManagerImpl">
+		<property name="encryptionManager" ref="encryptionManager" />
+		<property name="notificationManager" ref="notificationManager" />
+	</bean>
+
+	<bean id="orcidGenerationManager" class="org.orcid.core.manager.impl.OrcidGenerationManagerImpl" />
+	
+	<bean id="appIdGenerationManager" class="org.orcid.core.manager.impl.AppIdGenerationManagerImpl" />
+
+	<bean id="countryManager" class="org.orcid.core.manager.impl.CountryManagerImpl" />	
+
+	<bean id="securityQuestionManager" class="org.orcid.core.manager.impl.SecurityQuestionManagerImpl" />
+
+	<bean id="orcidProfileManager" class="org.orcid.core.manager.impl.OrcidProfileManagerImpl">		
+		<property name="claimWaitPeriodDays" value="${org.orcid.core.claimWaitPeriodDays:10}" />
+		<property name="claimReminderAfterDays" value="${org.orcid.core.claimReminderAfterDays:8}" />
+		<property name="profileDao" ref="profileDao" />
+        <property name="transactionTemplate" ref="transactionTemplate" />
+		<property name="orcidProfileCacheManager" ref="orcidProfileCacheManager" />
+	</bean>
+	
+	<bean id="orcidProfileManagerReadOnly" class="org.orcid.core.manager.impl.OrcidProfileManagerReadOnlyImpl">
+        <property name="claimWaitPeriodDays" value="${org.orcid.core.claimWaitPeriodDays:10}" />
+        <property name="profileDao" ref="profileDaoReadOnly" />
+        <property name="transactionTemplate" ref="transactionTemplateReadOnly" />
+        <property name="orcidProfileCacheManager" ref="orcidProfileCacheManagerReadOnly" />
+    </bean>
+	
+	<bean id="orcidProfileCacheManager" class="org.orcid.core.manager.impl.OrcidProfileCacheManagerImpl">
+	    <property name="orcidProfileManager" ref="orcidProfileManager" />
+	</bean>
+	
+	<bean id="orcidProfileCacheManagerReadOnly" class="org.orcid.core.manager.impl.OrcidProfileCacheManagerImpl">
+	    <property name="orcidProfileManager" ref="orcidProfileManagerReadOnly" />
+	</bean>		
+			
+	<bean id="clientDetailsEntityCacheManager" class="org.orcid.core.manager.impl.ClientDetailsEntityCacheManagerImpl"/>		
+	
+	<bean id="orcidJaxbCopyManager" class="org.orcid.core.manager.impl.OrcidJaxbCopyManagerImpl"/>
+
+	<bean id="webhookManager" class="org.orcid.core.manager.impl.WebhookManagerImpl">
+		<property name="maxJobsPerClient" value="${org.orcid.core.maxJobsPerClient:50}" />
+		<property name="numberOfWebhookThreads" value="${org.orcid.core.numberOfWebhookThreads:4}" />
+        <property name="retryDelayMinutes" value="${org.orcid.core.webhookRetryDelayMinutes:5}" />
+        <property name="maxPerRun" value="${org.orcid.core.webhookMaxPerRun:10000}" />
+	</bean>
+
+	<bean id="orcidProfileCleaner" class="org.orcid.core.manager.impl.OrcidProfileCleanerImpl" />
+
+	<bean id="crossRefManager" class="org.orcid.core.manager.impl.CrossRefManagerImpl" />
+
+	<bean id="referenceDataManager" class="org.orcid.core.manager.impl.ReferenceDataManagerImpl" />
+
+	<bean id="subjectManager" class="org.orcid.core.manager.impl.SubjectManagerImpl" />
+
+	<bean id="orcidSearchManager" class="org.orcid.core.manager.impl.OrcidSearchManagerImpl" >
+	    <property name="orcidProfileCacheManager" ref="orcidProfileCacheManager" />
+	</bean>
+	
+	<bean id="orcidSearchManagerReadOnly" class="org.orcid.core.manager.impl.OrcidSearchManagerImpl" >
+        <property name="orcidProfileCacheManager" ref="orcidProfileCacheManagerReadOnly" />
+    </bean>
+
+	<bean id="orcidIndexManager" class="org.orcid.core.manager.impl.OrcidIndexManagerImpl" />
+
+	<bean id="thirdPartyLinkManager" class="org.orcid.core.manager.impl.ThirdPartyLinkManagerImpl" />
+
+	<bean id="passwordGenerationManager"
+		class="org.orcid.core.manager.impl.PasswordGenerationManagerImpl">
+		<constructor-arg value="12"></constructor-arg>
+	</bean>
+
+	<bean id="orcidClientGroupManager" class="org.orcid.core.manager.impl.OrcidClientGroupManagerImpl" />		
+
+    <alias name="incomingValidationManagerV1_2_rc6" alias="incomingValidationManagerLatest"/>
+    <alias name="outgoingValidationManagerV1_2_rc6" alias="outgoingValidationManagerLatest"/>
+    
+    <bean id="incomingValidationManagerRoot" class="org.orcid.core.manager.impl.ValidationManagerForLegacyApiVersionsImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="${org.orcid.core.default_api}" />
+        <property name="requireOrcidProfile" value="${org.orcid.core.api.validation.default.requireOrcidProfile:true}"/>        
+        <property name="validateTitle" value="${org.orcid.core.api.validation.default.validateTitle:true}"/>
+        <property name="validateOnlyOnePrimaryEmail" value="${org.orcid.core.api.validation.default.validateOnlyOnePrimaryEmail:true}"/>
+        <property name="validateWorksHaveExternalIds" value="${org.orcid.core.api.validation.default.validateWorksHaveExternalIds:true}"/>
+        <property name="validateFundingHaveExternalIds" value="${org.orcid.core.api.validation.default.validateFundingHaveExternalIds:true}"/>       
+    </bean>
+    <bean id="outgoingValidationManagerRoot" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />     
+        <property name="version" value="${org.orcid.core.default_api}" />
+    </bean>
+    
+    <bean id="incomingValidationManagerV1_1" class="org.orcid.core.manager.impl.ValidationManagerForLegacyApiVersionsImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="1.1" />
+        <property name="requireOrcidProfile" value="true"/>        
+        <property name="validateTitle" value="true"/>
+    </bean>
+    <bean id="outgoingValidationManagerV1_1" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />
+        <property name="version" value="1.1" />
+    </bean>
+    
+    <bean id="incomingValidationManagerV1_2_rc3" class="org.orcid.core.manager.impl.ValidationManagerForLegacyApiVersionsImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="1.2_rc3" />
+        <property name="requireOrcidProfile" value="true"/>        
+        <property name="validateTitle" value="true"/>
+        <property name="validateOnlyOnePrimaryEmail" value="true"/>        
+    </bean>
+    <bean id="outgoingValidationManagerV1_2_rc3" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />
+        <property name="version" value="1.2_rc3" />
+    </bean>
+
+  <bean id="incomingValidationManagerV1_2_rc4" class="org.orcid.core.manager.impl.ValidationManagerForLegacyApiVersionsImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="1.2_rc4" />
+        <property name="requireOrcidProfile" value="true"/>        
+        <property name="validateTitle" value="true"/>
+        <property name="validateOnlyOnePrimaryEmail" value="true"/>        
+    </bean>
+    <bean id="outgoingValidationManagerV1_2_rc4" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />
+        <property name="version" value="1.2_rc4" />
+    </bean>
+
+  <bean id="incomingValidationManagerV1_2_rc5" class="org.orcid.core.manager.impl.ValidationManagerForLegacyApiVersionsImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="1.2_rc5" />
+        <property name="requireOrcidProfile" value="true"/>        
+        <property name="validateTitle" value="true"/>
+        <property name="validateOnlyOnePrimaryEmail" value="true"/>
+        <property name="validateWorksHaveExternalIds" value="true"/>
+		<property name="validateFundingHaveExternalIds" value="true"/>
+    </bean>
+    <bean id="outgoingValidationManagerV1_2_rc5" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />
+        <property name="version" value="1.2_rc5" />
+    </bean>
+    
+    <bean id="incomingValidationManagerV1_2_rc6" class="org.orcid.core.manager.impl.ValidationManagerForLegacyApiVersionsImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="1.2_rc6" />
+        <property name="requireOrcidProfile" value="true"/>        
+        <property name="validateTitle" value="true"/>
+        <property name="validateOnlyOnePrimaryEmail" value="true"/>
+        <property name="validateWorksHaveExternalIds" value="true"/>
+		<property name="validateFundingHaveExternalIds" value="true"/>
+    </bean>
+    <bean id="outgoingValidationManagerV1_2_rc6" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />
+        <property name="version" value="1.2_rc6" />
+    </bean>
+    
+    <bean id="incomingValidationManagerV1_2_rc7" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="1.2_rc7" />
+        <property name="requireOrcidProfile" value="true"/>        
+        <property name="validateTitle" value="true"/>
+        <property name="validateOnlyOnePrimaryEmail" value="true"/>
+        <property name="validateWorksHaveExternalIds" value="true"/>
+        <property name="validateFundingHaveExternalIds" value="true"/>
+    </bean>
+    <bean id="outgoingValidationManagerV1_2_rc7" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />
+        <property name="version" value="1.2_rc7" />
+    </bean>
+
+    <bean id="incomingValidationManagerV1_2" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="THROW_VALIDATION_EXCEPTION" />
+        <property name="version" value="1.2" />
+        <property name="requireOrcidProfile" value="true"/>        
+        <property name="validateTitle" value="true"/>
+        <property name="validateOnlyOnePrimaryEmail" value="true"/>
+        <property name="validateWorksHaveExternalIds" value="true"/>
+        <property name="validateFundingHaveExternalIds" value="true"/>
+    </bean>
+    <bean id="outgoingValidationManagerV1_2" class="org.orcid.core.manager.impl.ValidationManagerImpl">
+        <property name="validationBehaviour"
+            value="${org.orcid.core.manager.outgoingValidationBehaviour:LOG_WARNING}" />
+        <property name="version" value="1.2" />
+    </bean>
+
+    <bean id="notificationValidationManager" class="org.orcid.core.manager.impl.NotificationValidationManagerImpl" />
+    
+    <bean id="notificationValidationManagerV3" class="org.orcid.core.manager.v3.impl.NotificationValidationManagerImpl" />
+    
+    <bean id="activityValidator" class="org.orcid.core.manager.validator.ActivityValidator" />
+    <bean id="externalIDValidator" class="org.orcid.core.manager.validator.ExternalIDValidator" />
+    
+    <bean id="activityValidatorV3" class="org.orcid.core.manager.v3.validator.ActivityValidator" />
+    <bean id="externalIDValidatorV3" class="org.orcid.core.manager.v3.validator.ExternalIDValidator" />
+
+    <bean id="localeManager" class="org.orcid.core.locale.LocaleManagerImpl" />	
+	
+	<bean id="mailGunManager" class="org.orcid.core.manager.impl.MailGunManager" />
+
+    <bean id="orcidUrlManager" class="org.orcid.core.manager.impl.OrcidUrlManager" />	
+	
+	<bean id="ActivityCacheManager" class="org.orcid.core.manager.impl.ActivityCacheManagerImpl" />
+	
+	<bean id="profileEventManager" class="org.orcid.core.profileEvent.ProfileEventManager" />		
+	
+	<bean id="orgManager" class="org.orcid.core.manager.impl.OrgManagerImpl" />
+	
+	<bean id="orgDisambiguatedManager" class="org.orcid.core.manager.impl.OrgDisambiguatedManagerImpl" />
+	
+	<bean id="sourceManager" class="org.orcid.core.manager.impl.SourceManagerImpl" />
+	
+	<bean id="customEmailManager" class="org.orcid.core.manager.impl.CustomEmailManagerImpl" />
+	
+	<bean id="orcidSocialManager" class="org.orcid.core.manager.impl.OrcidSocialManagerImpl" />
+	
+	<bean id="adminManager" class="org.orcid.core.manager.impl.AdminManagerImpl" />	
+	
+	<bean id="orcidSecurityManager" class="org.orcid.core.manager.impl.OrcidSecurityManagerImpl" />		
+
+	<bean id="membersManager" class="org.orcid.core.manager.impl.MembersManagerImpl" />
+
+	<bean id="internalSSOManager" class="org.orcid.core.manager.impl.InternalSSOManagerImpl" />		
+	
+	<bean id="identityProviderManager" class="org.orcid.core.manager.impl.IdentityProviderManagerImpl" />
+
+	<bean id="identitifierTypeManager" class="org.orcid.core.manager.impl.IdentifierTypeManagerImpl" />
+    
+    <bean id="salesForceAdapter" class="org.orcid.core.salesforce.adapter.SalesForceAdapter" />
+    
+    <bean id="salesForceDao" class="org.orcid.core.salesforce.dao.impl.SalesForceDaoImpl" />
+    
+    <bean id="salesForceManager" class="org.orcid.core.manager.impl.SalesForceManagerImpl">
+        <property name="profileLastModifiedAspect" ref="profileLastModifiedAspect" />
+    </bean>
+
+	<bean id="institutionalSignInManager" class="org.orcid.core.manager.impl.InstitutionalSignInManagerImpl" />
+	
+	<bean id="userConnectionManager" class="org.orcid.core.manager.impl.UserConnectionManagerImpl" />
+    
+    <bean id="slackManager" class="org.orcid.core.manager.impl.SlackManagerImpl" />
+    
+    <bean id="analyticsClient" class="org.orcid.core.analytics.client.google.UniversalAnalyticsClient" />		
+    
+    <bean id="twoFactorAuthenticationManager" class="org.orcid.core.manager.impl.TwoFactorAuthenticationManagerImpl" />
+
+    <bean id="backupCodeManager" class="org.orcid.core.manager.impl.BackupCodeManagerImpl" />
+    
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames" value="classpath:i18n/api,classpath:i18n/email,classpath:i18n/javascript,classpath:i18n/messages,classpath:i18n/admin,classpath:i18n/identifiers,classpath:i18n/notranslate,classpath:i18n/notranslate" />
+		<property name="defaultEncoding" value="UTF-8" />
+		<property name="cacheSeconds" value="${org.orcid.core.messages.cacheSeconds:5}" />
+	</bean>
+	
+	<bean id="orcidMessageVersionConverterChain" class="org.orcid.core.version.impl.OrcidMessageVersionConverterChainImpl">
+	    <property name="converters">
+	        <list>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_1ToV1_2_rc1"/>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_2_rc1ToV1_2_rc2"/>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_2_rc2ToV1_2_rc3"/>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_2_rc3ToV1_2_rc4"/>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_2_rc4ToV1_2_rc5"/>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_2_rc5ToV1_2_rc6"/>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_2_rc6ToV1_2_rc7"/>
+                <bean class="org.orcid.core.version.impl.OrcidMessageVersionConverterImplV1_2_rc7ToV1_2"/>
+	        </list>
+	    </property>
+	</bean>
+	
+	<bean id="v2VersionConverterChain" class="org.orcid.core.version.impl.V2VersionConverterChainImpl">
+	    <property name="converters">
+            <list>
+	            <ref bean="versionConverterV2_0_rc1ToV2_0_rc2" />
+	            <ref bean="versionConverterV2_0_rc2ToV2_0_rc3" />
+	            <ref bean="versionConverterV2_0_rc3ToV2_0_rc4" />
+	            <ref bean="versionConverterV2_0_rc4ToV2_0" />	            
+	        </list>
+	    </property>
+	</bean>
+	
+	<bean id="v2_1VersionConverterChain" class="org.orcid.core.version.impl.V2_1VersionConverterChainImpl">
+	    <property name="converters">
+            <list>
+	            <ref bean="versionConverterV2_0ToV2_1" />
+	        </list>
+	    </property>
+	</bean>
+	
+    <bean id="versionConverterV2_0_rc1ToV2_0_rc2" class="org.orcid.core.version.impl.VersionConverterImplV2_0_rc1ToV2_0_rc2"/>
+	<bean id="versionConverterV2_0_rc2ToV2_0_rc3" class="org.orcid.core.version.impl.VersionConverterImplV2_0_rc2ToV2_0_rc3"/>
+	<bean id="versionConverterV2_0_rc3ToV2_0_rc4" class="org.orcid.core.version.impl.VersionConverterImplV2_0_rc3ToV2_0_rc4"/>
+	<bean id="versionConverterV2_0_rc4ToV2_0" class="org.orcid.core.version.impl.VersionConverterImplV2_0_rc4ToV2_0"/>
+	<bean id="versionConverterV2_0ToV2_1" class="org.orcid.core.version.impl.VersionConverterImplV2_0ToV2_1"/>
+
+	<cache:annotation-driven cache-manager="springCoreCacheManager"/>
+	
+	<bean id="coreCacheManager"
+		class="org.orcid.core.utils.OrcidEhCacheManagerFactoryBean">
+		<property name="configLocation" value="classpath:ehcache#{orcidUrlManager.appNameSuffix}.xml" />
+		<property name="shared" value="true" />
+		<property name="cacheManagerName" value="coreCacheManager" />
+	</bean>
+	
+	<!-- Exposing cache statistics through JMX. -->
+    <bean class="org.orcid.core.utils.OrcidEhcacheManagementService" init-method="init">
+        <constructor-arg ref="coreCacheManager"/>
+        <constructor-arg ref="mbeanServer"/>
+        <constructor-arg value="true"/>
+        <constructor-arg value="true"/>
+        <constructor-arg value="true"/>
+        <constructor-arg value="true"/>
+    </bean>   
+	
+	<bean id="springCoreCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+		<property name="cacheManager" ref="coreCacheManager" />
+	</bean>
+	
+	<bean id="recentOrcidCache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+		<property name="cacheName" value="recent-orcid" />
+		<property name="cacheManager" ref="coreCacheManager" />
+	</bean>
+	
+	<bean id="profileCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+		<property name="cacheName" value="profile" />
+		<property name="cacheManager" ref="coreCacheManager" />
+		<property name="maxElementsInMemory" value="${org.orcid.core.profileCache.maxElementsInMemory:10000}" />
+		<property name="timeToLiveSeconds" value="${org.orcid.core.profileCache.timeToLiveSeconds:600}" />
+		<property name="timeToIdleSeconds" value="${org.orcid.core.profileCache.timeToIdleSeconds:600}" />
+		<property name="maxElementsOnDisk" value="${org.orcid.core.profileCache.maxElementsOnDisk:40000}" />
+		<property name="strategy" value="NONE" />
+	</bean>
+		
+    <bean id="publicProfileCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="public-profile" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="500" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="7200" />
+        <property name="maxElementsOnDisk" value="10000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+    </bean>
+    
+    <bean id="publicBioCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="public-bio" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="500" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="7200" />
+        <property name="maxElementsOnDisk" value="10000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+    </bean>
+
+    <bean id="profileBioAndInternalCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="profile-bio-and-internal" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="500" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="7200" />
+        <property name="maxElementsOnDisk" value="10000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+    </bean>
+
+	<bean id="profileEntityCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+		<property name="cacheName" value="profile-entity" />
+		<property name="cacheManager" ref="coreCacheManager" />
+		<property name="maxElementsInMemory" value="${org.orcid.core.profileCache.maxElementsInMemory:5000}" />
+		<property name="timeToLiveSeconds" value="${org.orcid.core.profileCache.timeToLiveSeconds:3600}" />
+		<property name="timeToIdleSeconds" value="${org.orcid.core.profileCache.timeToIdleSeconds:3600}" />
+		<property name="maxElementsOnDisk" value="10000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+	</bean>		
+	
+	<bean id="sourceNameCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean"> 
+		<property name="cacheName" value="source-name" />
+		<property name="cacheManager" ref="coreCacheManager" />
+		<property name="maxElementsInMemory" value="${org.orcid.core.sourceNameCache.maxElementsInMemory:10000}" />
+		<property name="timeToLiveSeconds" value="${org.orcid.core.sourceNameCache.timeToLiveSeconds:300}" />
+		<property name="timeToIdleSeconds" value="${org.orcid.core.sourceNameCache.timeToIdleSeconds:300}" />
+		<property name="maxElementsOnDisk" value="0" />
+		<property name="strategy" value="NONE" />
+	</bean>	
+	
+	<bean id="clientDetailsEntityCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+		<property name="cacheName" value="client-details-entity" />
+		<property name="cacheManager" ref="coreCacheManager" />
+		<property name="maxElementsInMemory" value="${org.orcid.core.clientDetailsCache.maxElementsInMemory:10000}" />
+		<property name="timeToLiveSeconds" value="${org.orcid.core.clientDetailsCache.timeToLiveSeconds:600}" />
+		<property name="timeToIdleSeconds" value="${org.orcid.core.clientDetailsCache.timeToIdleSeconds:600}" />
+		<property name="maxElementsOnDisk" value="0" />
+		<property name="strategy" value="NONE" />
+	</bean>
+
+	<bean id="clientDetailsEntityIdPCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+		<property name="cacheName" value="client-details-idp-entity" />
+		<property name="cacheManager" ref="coreCacheManager" />
+		<property name="maxElementsInMemory" value="${org.orcid.core.clientDetailsCache.maxElementsInMemory:10000}" />
+		<property name="timeToLiveSeconds" value="${org.orcid.core.clientDetailsCache.timeToLiveSeconds:600}" />
+		<property name="timeToIdleSeconds" value="${org.orcid.core.clientDetailsCache.timeToIdleSeconds:600}" />
+		<property name="maxElementsOnDisk" value="0" />
+		<property name="strategy" value="NONE" />
+	</bean>
+	
+	<bean id="workLastModifiedCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="work-last-modified" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="2000" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="7200" />
+        <property name="maxElementsOnDisk" value="6000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="true" />
+    </bean>
+    
+    <bean id="publicWorkLastModifiedCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="public-work-last-modified" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="2000" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="7200" />
+        <property name="maxElementsOnDisk" value="6000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="true" />
+    </bean>
+
+    <bean id="minimizedWorkEntityCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="minimized-work" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="30000" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="7200" />
+        <property name="maxElementsOnDisk" value="150000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="true" />
+    </bean>
+    
+    <bean id="fullWorkEntityCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="full-work-entity" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="30000" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="7200" />
+        <property name="maxElementsOnDisk" value="120000" />
+        <property name="strategy" value="LOCALTEMPSWAP" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="true" />
+    </bean>
+    
+    <bean id="salesForceMembersListCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="sales-force-members-list" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="5" />
+        <property name="timeToLiveSeconds" value="3600" />
+        <property name="timeToIdleSeconds" value="3600" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.salesforce.cache.MembersListCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <bean id="salesForceMemberCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="sales-force-member" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="1000" />
+        <property name="timeToLiveSeconds" value="3600" />
+        <property name="timeToIdleSeconds" value="3600" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.salesforce.cache.MemberCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <bean id="salesForceMemberDetailsCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="sales-force-member-details" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="1000" />
+        <property name="timeToLiveSeconds" value="3600" />
+        <property name="timeToIdleSeconds" value="3600" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.salesforce.cache.MemberDetailsCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <bean id="salesForceConsortiaListCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="sales-force-consortia-list" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="5" />
+        <property name="timeToLiveSeconds" value="3600" />
+        <property name="timeToIdleSeconds" value="3600" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.salesforce.cache.ConsortiaListCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <bean id="salesForceConsortiumCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="sales-force-consortium" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="200" />
+        <property name="timeToLiveSeconds" value="3600" />
+        <property name="timeToIdleSeconds" value="3600" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.salesforce.cache.ConsortiumCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <bean id="salesForceContactsCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="sales-force-contacts" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="1000" />
+        <property name="timeToLiveSeconds" value="3600" />
+        <property name="timeToIdleSeconds" value="3600" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.salesforce.cache.ContactsCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <bean id="identityProviderNameCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="identity-provider-name" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="5000" />
+        <property name="timeToLiveSeconds" value="3600" />
+        <property name="timeToIdleSeconds" value="3600" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.manager.impl.IdentityProviderNameCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <bean id="doiBibtexCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="doi-bibtex" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="5000" />
+        <property name="timeToLiveSeconds" value="86400" />
+        <property name="timeToIdleSeconds" value="86400" />
+        <property name="strategy" value="NONE" />
+        <property name="copyOnRead" value="false" />
+        <property name="copyOnWrite" value="false" />
+        <property name="cacheEntryFactory">
+            <bean class="org.orcid.core.manager.impl.DoiBibtexCacheEntryFactory" />
+        </property>
+    </bean>
+    
+    <!-- 
+    <bean id="identifierTypesCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="identifierTypes" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="1000" />
+        <property name="maxElementsOnDisk" value="0" />
+        <property name="strategy" value="NONE" />
+    </bean>
+
+    <bean id="identifierTypesMapCache" class="org.orcid.core.utils.OrcidEhCacheFactoryBean">
+        <property name="cacheName" value="identifierTypesMap" />
+        <property name="cacheManager" ref="coreCacheManager" />
+        <property name="maxElementsInMemory" value="1" />
+        <property name="maxElementsOnDisk" value="0" />
+        <property name="strategy" value="NONE" />
+    </bean> -->
+
+	<!-- HTTP client connection beans -->
+	<bean id="plainSocketFactory" class="org.apache.http.conn.scheme.PlainSocketFactory"
+		factory-method="getSocketFactory" />
+
+	<bean id="sslSocketFactory" class="org.apache.http.conn.ssl.SSLSocketFactory"
+		factory-method="getSocketFactory" />
+
+	<bean id="plainScheme" class="org.apache.http.conn.scheme.Scheme">
+		<constructor-arg type="java.lang.String" value="http" />
+		<constructor-arg ref="plainSocketFactory" />
+		<constructor-arg type="int" value="80" />
+	</bean>
+
+	<bean id="sslScheme" class="org.apache.http.conn.scheme.Scheme">
+		<constructor-arg type="java.lang.String" value="https" />
+		<constructor-arg ref="sslSocketFactory" />
+		<constructor-arg type="int" value="443" />
+	</bean>
+
+	<bean id="schemeRegistry" class="org.apache.http.conn.scheme.SchemeRegistry" />
+
+	<bean id="registerPlainScheme"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref bean="schemeRegistry" />
+		</property>
+		<property name="targetMethod" value="register" />
+		<property name="arguments">
+			<list>
+				<ref bean="plainScheme" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="registerSSLScheme"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref bean="schemeRegistry" />
+		</property>
+		<property name="targetMethod" value="register" />
+		<property name="arguments">
+			<list>
+				<ref bean="sslScheme" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="poolingClientConnectionManager"
+		class="org.apache.http.impl.conn.PoolingClientConnectionManager">
+		<constructor-arg ref="schemeRegistry" />
+		<property name="maxTotal" value="100" />
+		<property name="defaultMaxPerRoute" value="10" />
+	</bean>
+
+	<bean id="httpClient" class="org.apache.http.impl.client.DefaultHttpClient">
+		<constructor-arg ref="poolingClientConnectionManager" />
+	</bean>
+	
+	<!-- CDN config path -->
+	<bean id="cdnConfigFile" class="java.lang.String">
+		<constructor-arg value="cdn_url.txt"/>
+	</bean>
+	
+	<bean id="jpaJaxbEntityAdapter" class="org.orcid.core.adapter.impl.JpaJaxbEntityAdapterImpl">
+        <constructor-arg ref="jpa2JaxbAdapter" />
+        <constructor-arg ref="jaxb2JpaAdapter" />
+    </bean>
+
+    <bean id="jpa2JaxbAdapter" class="org.orcid.core.adapter.impl.Jpa2JaxbAdapterImpl" />
+    <bean id="jaxb2JpaAdapter" class="org.orcid.core.adapter.impl.Jaxb2JpaAdapterImpl" />
+	
+	<bean id="mapperFacadeFactory" class="org.orcid.core.adapter.impl.MapperFacadeFactory">
+	   <constructor-arg value="${org.orcid.core.orika.debug:false}" />
+	</bean>
+	<bean id="mapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getObject"/>
+	<bean id="jpaJaxbNotificationAdapter" class="org.orcid.core.adapter.impl.JpaJaxbNotificationAdapterImpl">
+	    <property name="mapperFacade" ref="mapperFacade" />
+	</bean>
+	<bean id="workMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getWorkMapperFacade"/>
+    <bean id="jpaJaxbWorkAdapter" class="org.orcid.core.adapter.impl.JpaJaxbWorkAdapterImpl">
+        <property name="mapperFacade" ref="workMapperFacade" />
+    </bean>
+	
+	<bean id="fundingMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getFundingMapperFacade"/>
+	<bean id="jpaJaxbFundingAdapter" class="org.orcid.core.adapter.impl.JpaJaxbFundingAdapterImpl">
+        <property name="mapperFacade" ref="fundingMapperFacade" />
+    </bean>
+	
+	<bean id="educationMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getEducationMapperFacade"/>
+	<bean id="jpaJaxbEducationAdapter" class="org.orcid.core.adapter.impl.JpaJaxbEducationAdapterImpl">
+        <property name="mapperFacade" ref="educationMapperFacade" />
+    </bean>
+	
+	<bean id="employmentMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getEmploymentMapperFacade"/>
+	<bean id="jpaJaxbEmploymentAdapter" class="org.orcid.core.adapter.impl.JpaJaxbEmploymentAdapterImpl">
+        <property name="mapperFacade" ref="employmentMapperFacade" />
+    </bean>
+    
+    <bean id="peerReviewMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getPeerReviewMapperFacade"/>
+	<bean id="jpaJaxbPeerReviewAdapter" class="org.orcid.core.adapter.impl.JpaJaxbPeerReviewAdapterImpl">
+        <property name="mapperFacade" ref="peerReviewMapperFacade" />
+    </bean>
+    
+    <bean id="groupIdRecordMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getGroupIdRecordMapperFacade"/>
+	<bean id="jpaJaxbGroupIdRecordAdapter" class="org.orcid.core.adapter.impl.JpaJaxbGroupIdRecordAdapterImpl">
+        <property name="mapperFacade" ref="groupIdRecordMapperFacade" />
+    </bean>
+    
+    <bean id="researcherUrlMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getResearcherUrlMapperFacade"/>
+	<bean id="jpaJaxbResearcherUrlAdapter" class="org.orcid.core.adapter.impl.JpaJaxbResearcherUrlAdapterImpl">
+        <property name="mapperFacade" ref="researcherUrlMapperFacade" />
+    </bean>
+    
+    <bean id="emailMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getEmailMapperFacade"/>
+	<bean id="jpaJaxbEmailAdapter" class="org.orcid.core.adapter.impl.JpaJaxbEmailAdapterImpl">
+        <property name="mapperFacade" ref="emailMapperFacade" />
+    </bean>
+    
+    <bean id="otherNameUrlMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getOtherNameMapperFacade"/>
+	<bean id="jpaJaxbOtherNameAdapter" class="org.orcid.core.adapter.impl.JpaJaxbOtherNameAdapterImpl">
+        <property name="mapperFacade" ref="otherNameUrlMapperFacade" />
+    </bean>
+    
+    <bean id="nameMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getNameMapperFacade"/>
+	<bean id="jpaJaxbNameAdapter" class="org.orcid.core.adapter.impl.JpaJaxbNameAdapterImpl">
+        <property name="mapperFacade" ref="nameMapperFacade" />
+    </bean>
+    
+    <bean id="externalIdentifierMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getExternalIdentifierMapperFacade"/>
+	<bean id="jpaJaxbExternalIdentifierAdapter" class="org.orcid.core.adapter.impl.JpaJaxbExternalIdentifierAdapterImpl">
+        <property name="mapperFacade" ref="externalIdentifierMapperFacade" />
+    </bean>        
+    
+    <bean id="keywordMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getKeywordMapperFacade"/>
+	<bean id="jpaJaxbKeywordAdapter" class="org.orcid.core.adapter.impl.JpaJaxbKeywordAdapterImpl">
+        <property name="mapperFacade" ref="keywordMapperFacade" />
+    </bean>
+        
+    <bean id="addressMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getAddressMapperFacade"/>
+	<bean id="jpaJaxbAddressAdapter" class="org.orcid.core.adapter.impl.JpaJaxbAddressAdapterImpl">
+        <property name="mapperFacade" ref="addressMapperFacade" />
+    </bean>
+    
+    <bean id="clientMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getClientMapperFacade"/>
+	<bean id="jpaJaxbClientAdapter" class="org.orcid.core.adapter.impl.JpaJaxbClientAdapterImpl">
+        <property name="mapperFacade" ref="clientMapperFacade" />
+    </bean>
+
+    <bean id="salesForceMapperFacadeFactory" class="org.orcid.core.salesforce.adapter.SalesForceMapperFacadeFactory" />
+    <bean id="salesForceMemberMapperFacade" factory-bean="&amp;salesForceMapperFacadeFactory" factory-method="getMemberMapperFacade"/>
+           
+    <bean id="invalidRecordDataChangeMapperFacade" factory-bean="&amp;mapperFacadeFactory" factory-method="getInvalidRecordDataChangeMapperFacade"/>
+	<bean id="jpaJaxbInvalidRecordDataChangeAdapter" class="org.orcid.core.adapter.impl.JpaJaxbInvalidRecordDataChangeAdapterImpl">
+        <property name="mapperFacade" ref="invalidRecordDataChangeMapperFacade" />
+    </bean>
+    
+    <!-- v3 adapters -->
+    <bean id="mapperFacadeFactoryV3" class="org.orcid.core.adapter.v3.impl.MapperFacadeFactory" />
+    <bean id="mapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getObject"/>
+    <bean id="jpaJaxbNotificationAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbNotificationAdapterImpl">
+        <property name="mapperFacade" ref="mapperFacadeV3" />
+    </bean>
+    <bean id="workMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getWorkMapperFacade"/>
+    <bean id="jpaJaxbWorkAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbWorkAdapterImpl">
+        <property name="mapperFacade" ref="workMapperFacadeV3" />
+    </bean>
+    
+    <bean id="fundingMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getFundingMapperFacade"/>
+    <bean id="jpaJaxbFundingAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbFundingAdapterImpl">
+        <property name="mapperFacade" ref="fundingMapperFacadeV3" />
+    </bean>
+    
+    <bean id="educationMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getEducationMapperFacade"/>
+    <bean id="jpaJaxbEducationAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbEducationAdapterImpl">
+        <property name="mapperFacade" ref="educationMapperFacadeV3" />
+    </bean>
+    
+    <bean id="employmentMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getEmploymentMapperFacade"/>
+    <bean id="jpaJaxbEmploymentAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbEmploymentAdapterImpl">
+        <property name="mapperFacade" ref="employmentMapperFacadeV3" />
+    </bean>
+    
+    <bean id="peerReviewMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getPeerReviewMapperFacade"/>
+    <bean id="jpaJaxbPeerReviewAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbPeerReviewAdapterImpl">
+        <property name="mapperFacade" ref="peerReviewMapperFacadeV3" />
+    </bean>
+    
+    <bean id="groupIdRecordMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getGroupIdRecordMapperFacade"/>
+    <bean id="jpaJaxbGroupIdRecordAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbGroupIdRecordAdapterImpl">
+        <property name="mapperFacade" ref="groupIdRecordMapperFacadeV3" />
+    </bean>
+    
+    <bean id="researcherUrlMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getResearcherUrlMapperFacade"/>
+    <bean id="jpaJaxbResearcherUrlAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbResearcherUrlAdapterImpl">
+        <property name="mapperFacade" ref="researcherUrlMapperFacadeV3" />
+    </bean>
+    
+    <bean id="emailMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getEmailMapperFacade"/>
+    <bean id="jpaJaxbEmailAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbEmailAdapterImpl">
+        <property name="mapperFacade" ref="emailMapperFacadeV3" />
+    </bean>
+    
+    <bean id="otherNameUrlMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getOtherNameMapperFacade"/>
+    <bean id="jpaJaxbOtherNameAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbOtherNameAdapterImpl">
+        <property name="mapperFacade" ref="otherNameUrlMapperFacadeV3" />
+    </bean>
+    
+    <bean id="nameMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getNameMapperFacade"/>
+    <bean id="jpaJaxbNameAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbNameAdapterImpl">
+        <property name="mapperFacade" ref="nameMapperFacadeV3" />
+    </bean>
+    
+    <bean id="externalIdentifierMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getExternalIdentifierMapperFacade"/>
+    <bean id="jpaJaxbExternalIdentifierAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbExternalIdentifierAdapterImpl">
+        <property name="mapperFacade" ref="externalIdentifierMapperFacadeV3" />
+    </bean>        
+    
+    <bean id="keywordMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getKeywordMapperFacade"/>
+    <bean id="jpaJaxbKeywordAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbKeywordAdapterImpl">
+        <property name="mapperFacade" ref="keywordMapperFacadeV3" />
+    </bean>
+        
+    <bean id="addressMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getAddressMapperFacade"/>
+    <bean id="jpaJaxbAddressAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbAddressAdapterImpl">
+        <property name="mapperFacade" ref="addressMapperFacadeV3" />
+    </bean>
+    
+    <bean id="clientMapperFacadeV3" factory-bean="&amp;mapperFacadeFactoryV3" factory-method="getClientMapperFacade"/>
+    <bean id="jpaJaxbClientAdapterV3" class="org.orcid.core.adapter.v3.impl.JpaJaxbClientAdapterImpl">
+        <property name="mapperFacade" ref="clientMapperFacadeV3" />
+    </bean>
+             
+    <bean id="v2VersionObjectFactory" class="org.orcid.core.version.impl.V2VersionObjectFactoryImpl" />
+            
+    <!-- Geonames username -->
+	<bean id="geonamesUser" class="java.lang.String">
+		<constructor-arg value="orcid"/>
+	</bean>
+	 
+	<!-- Geonames API -->
+	<bean id="geonamesApiUrl" class="java.lang.String">
+		<constructor-arg value="http://api.geonames.org/getJSON"/>
+	</bean>	
+	
+	<bean id="crossDomainWebManger" class="org.orcid.core.web.filters.CrossDomainWebManger" />
+	
+	<!-- Need to create a bean for this, so can access in Jersey filter -->
+	<bean id="v1xDisabled" class="java.lang.Boolean">
+		<constructor-arg value="${org.orcid.core.v1_x.disabled}"/>
+	</bean>
+	
+	<!-- We can add our Jms Message Sending Resource via @component - the whole package works like that-->
+
+	<bean id="orcidMessageUtil" class="org.orcid.core.utils.OrcidMessageUtil" />		
+	
+	<bean id="orcidCoreExceptionMapper" class="org.orcid.core.exception.OrcidCoreExceptionMapper" />
+	
+	<bean id="doiManager" class="org.orcid.core.manager.impl.DOIManagerImpl" />
+	<bean id="bibtexManager" class="org.orcid.core.manager.impl.BibtexManagerImpl" />
+	
+	
+	<bean id="givenPermissionToManager" class="org.orcid.core.manager.impl.GivenPermissionToManagerImpl"/>
+	
+	<bean id="preferenceManager" class="org.orcid.core.manager.impl.PreferenceManagerImpl" />
+		
+	<bean id="orcidCacheEvictionUtil" class="org.orcid.core.utils.OrcidCacheEvictionUtil" />
+	
+	<bean id="apiAnalyticsTaskExecutor"
+        class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="5" />
+        <property name="maxPoolSize" value="10" />
+        <property name="WaitForTasksToCompleteOnShutdown" value="true" />
+    </bean>
+</beans>

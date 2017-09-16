@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    =============================================================================
+
+    ORCID (R) Open Source
+    http://orcid.org
+
+    Copyright (c) 2012-2014 ORCID, Inc.
+    Licensed under an MIT-Style License (MIT)
+    http://orcid.org/open-source-license
+
+    This copyright and license information (including a link to the full license)
+    shall be included in its entirety in all copies or substantial portion of
+    the software.
+
+    =============================================================================
+
+-->
+<orcid-message xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.orcid.org/ns/orcid ../../../../orcid-model/src/main/resources/orcid-message-1.2_rc5.xsd"
+               xmlns="http://www.orcid.org/ns/orcid">
+    <message-version>1.2_rc5</message-version>
+    <!-- Error message, if applicable -->
+    <!-- Unable to connect to ORCID, no matching researchers, etc. -->
+    <!-- <error-desc>No researcher found.</error-desc> -->
+    <orcid-profile>
+        <orcid-identifier>
+            <uri>http://orcid.org/4444-4444-4444-4446</uri>
+            <path>4444-4444-4444-4446</path>
+            <host>orcid.org</host>
+        </orcid-identifier>
+        <orcid-history>
+            <creation-method>API</creation-method>
+            <completion-date>2012-10-09T15:50:07</completion-date>
+            <submission-date>2012-10-09T15:50:07</submission-date>
+            <!-- In short, researcher has claimed the profile if confirmed=true -->
+            <claimed>true</claimed>
+            <!-- The name of the institution that invited the researcher 
+                to register with ORCID -->
+            <source>
+                <source-orcid>
+                    <uri>http://orcid.org/8888-8888-8888-8880</uri>
+                    <path>8888-8888-8888-8880</path>
+                    <host>orcid.org</host>
+                </source-orcid>
+                <source-name>Brown University Library</source-name>
+                <source-date>2012-10-09T15:50:07</source-date>
+            </source>
+            <verified-email>false</verified-email>
+            <verified-primary-email>false</verified-primary-email>                    
+        </orcid-history>
+        <orcid-bio scope="update">
+            <personal-details>
+                <given-names>Josiah</given-names>
+                <family-name>Carberry</family-name>
+            </personal-details>
+            <researcher-urls>
+                <researcher-url >
+                    <url-name>Carberry-Hay</url-name>
+                    <url>http://library.brown.edu/about/hay/carberry.php</url>
+                </researcher-url>
+                <researcher-url>
+                    <url-name>Carberry 2</url-name>
+                    <url>http://en.wikipedia.org/wiki/Josiah_S._Carberry</url>
+                </researcher-url>
+                <researcher-url>
+                    <url-name>Carberry work 3</url-name>
+                    <url>http://www.brown.edu/Administration/News_Bureau/Databases/Encyclopedia/search.php?serial=C0070</url>
+                </researcher-url>
+            </researcher-urls>
+            <contact-details>
+                <address>
+                    <country>US</country>
+                </address>
+            </contact-details>
+            <keywords>
+                <keyword>Bilocation</keyword>
+            </keywords>
+            <external-identifiers>
+                <external-identifier>
+                    <external-id-source>
+                         <uri>http://orcid.org/8888-8888-8888-8880</uri>
+                         <path>8888-8888-8888-8880</path>
+                         <host>orcid.org</host>
+                     </external-id-source>
+                    <external-id-reference>YH0923</external-id-reference>
+                </external-identifier>
+            </external-identifiers>
+        </orcid-bio>
+        <orcid-activities>
+            <affiliations>
+                <affiliation>
+                    <type>employment</type>
+                    <role-title>Researcher (Academic)</role-title>
+                    <start-date>
+                        <year>2012</year>
+                        <month>04</month>
+                    </start-date>
+                    <organization>
+                        <name>New College</name>
+                        <address>
+                            <city>Some City</city>
+                            <region>CT</region>
+                            <country>US</country>
+                        </address>
+                    </organization>
+                </affiliation>
+                <affiliation>
+                    <type>employment</type>
+                    <department-name>Psychoceramics</department-name>
+                    <role-title>Researcher (Academic)</role-title>
+                    <start-date>
+                        <year>2008</year>
+                        <month>02</month>
+                    </start-date>
+                    <organization>
+	                    <name>Brown University</name>
+	                    <address>
+	                        <city>Providence</city>
+	                        <region>RI</region>
+	                        <country>US</country>
+	                    </address>
+	                    <disambiguated-organization>
+	                        <disambiguated-organization-identifier>abc123</disambiguated-organization-identifier>
+	                        <disambiguation-source>RINGGOLD</disambiguation-source>
+	                    </disambiguated-organization>
+                    </organization>
+                </affiliation>
+                <affiliation>
+                    <type>employment</type>
+                    <department-name>Law</department-name>
+                    <role-title>Researcher (Academic)</role-title>
+                    <start-date>
+                        <year>2005</year>
+                    </start-date>
+                    <organization>
+	                    <name>Yale University</name>
+	                    <address>
+	                        <city>New Haven</city>
+	                        <region>CT</region>
+	                        <country>US</country>
+	                    </address>
+	                    <disambiguated-organization>
+	                        <disambiguated-organization-identifier>def456</disambiguated-organization-identifier>
+	                        <disambiguation-source>RINGGOLD</disambiguation-source>
+	                    </disambiguated-organization>
+                    </organization>
+                </affiliation>
+                <affiliation>
+                    <type>education</type>
+                    <role-title>Student</role-title>
+                    <start-date>
+                        <year>1993</year>
+                    </start-date>
+                    <end-date>
+                        <year>1996</year>
+                    </end-date>
+                    <organization>
+	                    <name>Slightly Obscure College</name>
+	                    <address>
+	                        <city>London</city>
+	                        <country>GB</country>
+	                    </address>
+	                    <disambiguated-organization>
+	                        <disambiguated-organization-identifier>ghi789</disambiguated-organization-identifier>
+	                        <disambiguation-source>ORCID</disambiguation-source>
+	                    </disambiguated-organization>
+                    </organization>
+                </affiliation>
+            </affiliations>
+            <orcid-works>
+                <orcid-work>
+                    <work-title>
+                        <title>Work title 1</title>
+                        <subtitle>Work subtitle 1</subtitle>
+                    </work-title>
+                    <journal-title>Journal Title # 1</journal-title>
+                    <work-citation>
+                        <work-citation-type>bibtex</work-citation-type>
+                        <citation>@article{anarticle, title = {Example title from bibtex} }</citation>
+                    </work-citation>
+                    <work-type>journal-article</work-type>
+                </orcid-work>
+                <orcid-work>
+                    <work-title>
+                        <title>Work title 2</title>
+                        <subtitle>Work subtitle 2</subtitle>
+                    </work-title>
+                    <journal-title>Journal Title # 2</journal-title>
+                    <work-type>journal-article</work-type>
+                </orcid-work>
+                <orcid-work>
+                    <work-title>
+                        <title>Work Title 3</title>
+                        <subtitle>Work subtitle 3</subtitle>
+                    </work-title>
+                    <work-type>journal-article</work-type>
+                </orcid-work>
+            </orcid-works>            
+        </orcid-activities>
+    </orcid-profile>
+</orcid-message>

@@ -1,0 +1,27 @@
+target
+*.project
+*.classpath
+*.settings
+atlassian-ide-plugin.xml
+*.iml
+*.idea
+*py.class
+orcid-solr/data/*
+orcid-solr/src/main/webapp/solr/data/*
+.externalToolBuilders
+*.DS_Store
+orcid-solr-web/bin/
+rebel.xml
+deploy.log
+orcid-solr-web/src/main/webapp/solr/data/
+orcid-solr-web/src/main/webapp/solr/org/data/
+orcid-solr-web/src/main/webapp/solr/profile/data/
+orcid-solr-web/src/main/webapp/solr/fundingSubType/data
+orcid-solr-web/**/_rest_managed.json
+Servers/Pivotal tc Server Developer Edition v3.1-config/
+.metadata/
+orcid-web/src/main/webapp/static/javascript/ng1Orcid/node_modules/
+orcid-web/src/main/webapp/static/javascript/angular_orcid_generated.js
+orcid-activemq/activemq-data/
+orcid-activemq/logs/
+orcid-message-listener/logs/

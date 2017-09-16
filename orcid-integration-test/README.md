@@ -1,0 +1,1 @@
+See [ORCID-Source/TESTAUTO.md](../TESTAUTO.md)

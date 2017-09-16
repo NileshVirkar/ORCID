@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    =============================================================================
+
+    ORCID (R) Open Source
+    http://orcid.org
+
+    Copyright (c) 2012-2014 ORCID, Inc.
+    Licensed under an MIT-Style License (MIT)
+    http://orcid.org/open-source-license
+
+    This copyright and license information (including a link to the full license)
+    shall be included in its entirety in all copies or substantial portion of
+    the software.
+
+    =============================================================================
+
+-->
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
+	version="1.0">
+
+	<persistence-unit name="orcid" transaction-type="RESOURCE_LOCAL">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+         <!-- Entity classes -->
+        <class>org.orcid.persistence.jpa.entities.AmbiguousOrgEntity</class>
+        <class>org.orcid.persistence.jpa.entities.CountryIsoEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ExternalIdentifierEntity</class>
+        <class>org.orcid.persistence.jpa.entities.EmailEntity</class>
+        <class>org.orcid.persistence.jpa.entities.FuzzyDateEntity</class>
+        <class>org.orcid.persistence.jpa.entities.GivenPermissionByEntity</class>
+        <class>org.orcid.persistence.jpa.entities.GivenPermissionToEntity</class>
+        <class>org.orcid.persistence.jpa.entities.IdentityProviderEntity</class>
+        <class>org.orcid.persistence.jpa.entities.IdentityProviderNameEntity</class>
+        <class>org.orcid.persistence.jpa.entities.MinimizedWorkEntity</class>
+        <class>org.orcid.persistence.jpa.entities.NotificationItemEntity</class>
+        <class>org.orcid.persistence.jpa.entities.NotificationAddItemsEntity</class>
+        <class>org.orcid.persistence.jpa.entities.NotificationAmendedEntity</class>
+        <class>org.orcid.persistence.jpa.entities.NotificationEntity</class>
+        <class>org.orcid.persistence.jpa.entities.NotificationCustomEntity</class>
+        <class>org.orcid.persistence.jpa.entities.NotificationInstitutionalConnectionEntity</class>
+        <class>org.orcid.persistence.jpa.entities.NotificationWorkEntity</class>
+        <class>org.orcid.persistence.jpa.entities.OtherNameEntity</class>
+        <class>org.orcid.persistence.jpa.entities.OrgAffiliationRelationEntity</class>        
+        <class>org.orcid.persistence.jpa.entities.OrgDisambiguatedEntity</class>
+        <class>org.orcid.persistence.jpa.entities.OrgDisambiguatedExternalIdentifierEntity</class>
+        <class>org.orcid.persistence.jpa.entities.OrgEntity</class>
+        <class>org.orcid.persistence.jpa.entities.PeerReviewEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ProfileEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ProfileEventEntity</class>
+        <class>org.orcid.persistence.jpa.entities.EmailEventEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ProfileFundingEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ProfileKeywordEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ProfileSummaryEntity</class>
+        <class>org.orcid.persistence.jpa.entities.RefDataEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ResearcherUrlEntity</class>
+        <class>org.orcid.persistence.jpa.entities.SalesForceConnectionEntity</class>
+        <class>org.orcid.persistence.jpa.entities.SecurityQuestionEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ShibbolethAccountEntity</class>
+        <class>org.orcid.persistence.jpa.entities.SubjectEntity</class>
+        <class>org.orcid.persistence.jpa.entities.WebhookEntity</class>
+        <class>org.orcid.persistence.jpa.entities.WorkLastModifiedEntity</class>
+        <class>org.orcid.persistence.jpa.entities.GroupIdRecordEntity</class>
+        <class>org.orcid.persistence.jpa.entities.UserconnectionEntity</class>
+		<class>org.orcid.persistence.jpa.entities.UserconnectionPK</class>
+        <class>org.orcid.persistence.jpa.entities.InternalSSOEntity</class>
+        <class>org.orcid.persistence.jpa.entities.AddressEntity</class>
+        <class>org.orcid.persistence.jpa.entities.RecordNameEntity</class>
+        <class>org.orcid.persistence.jpa.entities.BiographyEntity</class>  
+        <class>org.orcid.persistence.jpa.entities.IdentifierTypeEntity</class>
+        <class>org.orcid.persistence.jpa.entities.WorkEntity</class>        
+
+        <!-- OAuth entities -->
+        <class>org.orcid.persistence.jpa.entities.ClientDetailsEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ClientAuthorisedGrantTypeEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ClientGrantedAuthorityEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ClientRedirectUriEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ClientResourceIdEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ClientScopeEntity</class>
+        <class>org.orcid.persistence.jpa.entities.ClientSecretEntity</class>
+        <class>org.orcid.persistence.jpa.entities.OrcidGrantedAuthority</class>
+        <class>org.orcid.persistence.jpa.entities.OrcidOauth2TokenDetail</class>
+        <class>org.orcid.persistence.jpa.entities.OrcidOauth2AuthoriziationCodeDetail</class>
+        <class>org.orcid.persistence.jpa.entities.CustomEmailEntity</class>
+
+		<!-- Orcid props entity -->
+		<class>org.orcid.persistence.jpa.entities.OrcidPropsEntity</class>
+		
+		<!-- Orcid social -->
+		<class>org.orcid.persistence.jpa.entities.OrcidSocialEntity</class>
+		
+		<!-- Invalid record data changes -->
+		<class>org.orcid.persistence.jpa.entities.InvalidRecordDataChangeEntity</class>
+		<class>org.orcid.persistence.jpa.entities.BackupCodeEntity</class>		
+		
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+
+<!--         <properties> -->
+<!-- 	        <property name="hibernate.cache.region.factory_class" value="net.sf.ehcache.hibernate.SingletonEhCacheRegionFactory"/> -->
+<!-- 			<property name="hibernate.cache.use_query_cache" value="false"/> -->
+<!-- 			<property name="hibernate.cache.use_second_level_cache" value="true"/> -->
+<!-- 			<property name="hibernate.cache.provider_configuration_file_resource_path" value="ehcache.xml" />  -->
+<!-- 	    </properties> -->
+	    
+	</persistence-unit>
+	
+	<persistence-unit name="statistics" transaction-type="RESOURCE_LOCAL">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<class>org.orcid.statistics.jpa.entities.StatisticValuesEntity</class>
+		<class>org.orcid.statistics.jpa.entities.StatisticKeyEntity</class>		
+	</persistence-unit>
+
+</persistence>

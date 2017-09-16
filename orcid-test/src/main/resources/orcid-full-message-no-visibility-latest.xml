@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    =============================================================================
+
+    ORCID (R) Open Source
+    http://orcid.org
+
+    Copyright (c) 2012-2014 ORCID, Inc.
+    Licensed under an MIT-Style License (MIT)
+    http://orcid.org/open-source-license
+
+    This copyright and license information (including a link to the full license)
+    shall be included in its entirety in all copies or substantial portion of
+    the software.
+
+    =============================================================================
+
+-->
+<orcid-message xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.orcid.org/ns/orcid ../../../../orcid-model/src/main/resources/orcid-message-1.2_rc5.xsd"
+    xmlns="http://www.orcid.org/ns/orcid">
+    <message-version>1.2_rc5</message-version>
+    <orcid-profile xmlns="http://www.orcid.org/ns/orcid">
+        <orcid-identifier>
+            <uri>http://orcid.org/4444-4444-4444-4446</uri>
+            <path>4444-4444-4444-4446</path>
+            <host>orcid.org</host>
+         </orcid-identifier>
+        <orcid-history>
+            <creation-method>API</creation-method>
+            <completion-date>2012-10-09T15:50:07</completion-date>
+            <submission-date>2012-10-09T15:50:07</submission-date>
+            <!-- In short, researcher has claimed the profile if confirmed=true -->
+            <claimed>true</claimed>
+            <source>
+                <source-orcid>
+                    <uri>http://orcid.org/8888-8888-8888-8880</uri>
+                    <path>8888-8888-8888-8880</path>
+                    <host>orcid.org</host>
+                </source-orcid>
+                <source-name>Brown University Library</source-name>
+            </source>
+            <verified-email>false</verified-email>
+            <verified-primary-email>false</verified-primary-email>
+        </orcid-history>
+        <orcid-bio>
+            <personal-details>
+                <given-names>givenNames</given-names>
+                <family-name>familyName</family-name>
+                <credit-name>credit name</credit-name>
+                <other-names>
+                    <other-name>Other 1</other-name>
+                    <other-name>Other 2</other-name>
+                </other-names>
+            </personal-details>
+            <biography>A man, just a man</biography>
+            <researcher-urls>
+                <researcher-url>
+                    <url>http://www.wjrs.co.uk</url>
+                </researcher-url>
+                <researcher-url>
+                    <url>http://www.vvs.com</url>
+                </researcher-url>
+            </researcher-urls>
+            <contact-details>
+                <email primary="true" verified="true" current="true">jamesb@semantico.co.uk</email>
+                <email primary="false">jamesb1@semantico.co.uk</email>
+                <email primary="false">jamesb2@semantico.co.uk</email>
+            </contact-details>
+            <keywords>
+                <keyword>Pavement Studies</keyword>
+                <keyword>Advanced Tea Making</keyword>
+            </keywords>
+            <external-identifiers>
+                <external-identifier>
+                    <external-id-source>
+                        <uri>http://orcid.org/8888-8888-8888-8880</uri>
+                        <path>8888-8888-8888-8880</path>
+                        <host>orcid.org</host>
+                    </external-id-source>
+                    <external-id-reference>YH0923</external-id-reference>
+                </external-identifier>
+            </external-identifiers>
+        </orcid-bio>
+        <orcid-activities>
+            <affiliations>
+                <affiliation>
+                    <type>employment</type>
+                    <role-title>Researcher (Academic)</role-title>
+                    <start-date>
+                        <year>2012</year>
+                        <month>04</month>
+                    </start-date>
+                    <organization>
+                        <name>New College</name>
+                        <address>
+                            <city>Some City</city>
+                            <region>CT</region>
+                            <country>US</country>
+                        </address>
+                    </organization>
+                </affiliation>
+                <affiliation>
+                    <type>funding</type>
+                    <department-name>Psychoceramics</department-name>
+                    <role-title>Researcher (Academic)</role-title>
+                    <start-date>
+                        <year>2008</year>
+                        <month>02</month>
+                    </start-date>
+                    <organization>
+	                    <name>Brown University</name>
+	                    <address>
+	                        <city>Providence</city>
+	                        <region>RI</region>
+	                        <country>US</country>
+	                    </address>
+	                    <disambiguated-organization>
+	                        <disambiguated-organization-identifier>abc123</disambiguated-organization-identifier>
+	                        <disambiguation-source>RINGGOLD</disambiguation-source>
+	                    </disambiguated-organization>
+                    </organization>
+                </affiliation>
+                <affiliation>
+                    <type>employment</type>
+                    <department-name>Law</department-name>
+                    <role-title>Researcher (Academic)</role-title>
+                    <start-date>
+                        <year>2005</year>
+                    </start-date>
+                    <organization>
+	                    <name>Yale University</name>
+	                    <address>
+	                        <city>New Haven</city>
+	                        <region>CT</region>
+	                        <country>US</country>
+	                    </address>
+	                    <disambiguated-organization>
+	                        <disambiguated-organization-identifier>def456</disambiguated-organization-identifier>
+	                        <disambiguation-source>RINGGOLD</disambiguation-source>
+	                    </disambiguated-organization>
+                    </organization>
+                </affiliation>
+                <affiliation>
+                    <type>education</type>
+                    <role-title>Student</role-title>
+                    <start-date>
+                        <year>1993</year>
+                    </start-date>
+                    <end-date>
+                        <year>1996</year>
+                    </end-date>
+                    <organization>
+	                    <name>Slightly Obscure College</name>
+	                    <address>
+	                        <city>London</city>
+	                        <country>GB</country>
+	                    </address>
+	                    <disambiguated-organization>
+	                        <disambiguated-organization-identifier>ghi789</disambiguated-organization-identifier>
+	                        <disambiguation-source>ORCID</disambiguation-source>
+	                    </disambiguated-organization>
+                    </organization>
+                </affiliation>
+            </affiliations>
+            <orcid-works>
+                <orcid-work>
+                    <work-title>
+                        <title>Work title 1</title>
+                        <subtitle>Work subtitle 1</subtitle>
+                        <translated-title language-code="en">Work title 1</translated-title>
+                    </work-title>
+                	<work-type>online-resource</work-type>
+                </orcid-work>
+                <orcid-work>
+                    <work-title>
+                        <title>Work title 2</title>
+                        <subtitle>Work subtitle 2</subtitle>
+                    </work-title>
+                    <work-type>online-resource</work-type>
+                </orcid-work>
+                <orcid-work>
+                    <work-title>
+                        <title>Work Title 3</title>
+                        <subtitle>Work subtitle 3</subtitle>
+                    </work-title>
+                    <work-type>online-resource</work-type>
+                </orcid-work>
+            </orcid-works>
+        </orcid-activities>
+        <orcid-internal>
+            <security-details>
+                <encrypted-password>abc123</encrypted-password>
+                <security-question-id>1</security-question-id>
+                <encrypted-security-answer>dMDyJ1Z7Qn6xWClFzA63fQ==
+                </encrypted-security-answer>
+                <encrypted-verification-code>ghi789
+                </encrypted-verification-code>
+            </security-details>
+            <preferences>
+                <send-change-notifications>true</send-change-notifications>
+                <send-orcid-news>false</send-orcid-news>
+                <activities-visibility-default>public</activities-visibility-default>
+            </preferences>
+        </orcid-internal>
+    </orcid-profile>
+</orcid-message>
